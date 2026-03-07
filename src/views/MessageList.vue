@@ -37,6 +37,10 @@ function goToStats() {
   router.push('/stats')
 }
 
+function goToAdmin() {
+  router.push('/admin/new')
+}
+
 function getMoodInfo(tag: string) {
   return MOOD_TAGS[tag as keyof typeof MOOD_TAGS] || MOOD_TAGS.miss
 }
@@ -84,6 +88,13 @@ function getMoodInfo(tag: string) {
         </div>
       </div>
     </van-pull-refresh>
+
+    <!-- 浮动按钮：发布留言 -->
+    <van-floating-bubble
+      axis="xy"
+      icon="plus"
+      @click="goToAdmin"
+    />
   </div>
 </template>
 
