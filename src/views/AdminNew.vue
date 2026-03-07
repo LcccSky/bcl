@@ -4,11 +4,12 @@ import { useRouter } from 'vue-router'
 import { messageApi } from '@/utils/supabase'
 import { MOOD_TAGS } from '@/types'
 import { showToast } from 'vant'
+import type { UploaderFileListItem } from 'vant'
 
 const router = useRouter()
 const content = ref('')
 const imageUrl = ref('')
-const imageFile = ref<File | null>(null)
+const imageFiles = ref<UploaderFileListItem[]>([])
 const moodTag = ref<'miss' | 'cheer' | 'goodnight' | 'surprise'>('miss')
 const publishType = ref('now')
 const publishTime = ref('')
@@ -21,18 +22,20 @@ const moodOptions = Object.entries(MOOD_TAGS).map(([key, value]) => ({
   color: value.color
 }))
 
-async function handleImageUpload(file: File) {
+async function handleImageUpload(item: UploaderFileListItem | UploaderFileListItem[]) {
   uploading.value = true
   try {
-    const url = await messageApi.uploadImage(file)
+    const fileItem = Array.isArray(item) ? item[0] : item
+    if (!fileItem.file) {
+      throw new Error('No file selected')
+    }
+
+    const url = await messageApi.uploadImage(fileItem.file)
     imageUrl.value = url
-    imageFile.value = file
     showToast('图片上传成功')
-    return file
   } catch (error) {
     console.error('图片上传失败:', error)
     showToast('图片上传失败')
-    return null
   } finally {
     uploading.value = false
   }
@@ -114,7 +117,7 @@ function goBack() {
         <div class="section">
           <div class="section-title">添加图片（可选）</div>
           <van-uploader
-            v-model="imageFile"
+            v-model="imageFiles"
             :max-count="1"
             :after-read="handleImageUpload"
             :loading="uploading"
