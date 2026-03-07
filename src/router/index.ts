@@ -11,7 +11,7 @@ const router = createRouter({
       path: '/messages',
       name: 'messages',
       component: () => import('@/views/MessageList.vue'),
-      meta: { title: '心语盒子' }
+      meta: { title: '留一口' }
     },
     {
       path: '/message/:id',
@@ -47,7 +47,7 @@ const router = createRouter({
 })
 
 router.beforeEach((to, _from, next) => {
-  document.title = (to.meta.title as string) || '心语盒子'
+  document.title = (to.meta.title as string) || '留一口'
   next()
 })
 

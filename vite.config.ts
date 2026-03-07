@@ -11,8 +11,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
-        name: '心语盒子',
-        short_name: '心语盒子',
+        name: '留一口',
+        short_name: '留一口',
         description: '专属留言板',
         theme_color: '#ff6b9d',
         background_color: '#ffffff',

@@ -45,7 +45,7 @@ function getMoodInfo(tag: string) {
 <template>
   <div class="message-list">
     <div class="header">
-      <h1>❤️ 心语盒子</h1>
+      <h1>❤️ 留一口</h1>
       <div class="header-actions">
         <van-button plain type="primary" size="small" @click="goToStats">
           统计

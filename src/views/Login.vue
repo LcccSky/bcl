@@ -31,7 +31,7 @@ async function handleLogin() {
   <div class="login">
     <div class="login-header">
       <h1>❤️</h1>
-      <h2>心语盒子</h2>
+      <h2>留一口</h2>
       <p>管理后台</p>
     </div>
 
