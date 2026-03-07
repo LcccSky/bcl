@@ -26,7 +26,7 @@ async function handleImageUpload(item: UploaderFileListItem | UploaderFileListIt
   uploading.value = true
   try {
     const fileItem = Array.isArray(item) ? item[0] : item
-    if (!fileItem.file) {
+    if (!fileItem || !fileItem.file) {
       throw new Error('No file selected')
     }
 
