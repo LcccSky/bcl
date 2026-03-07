@@ -8,16 +8,35 @@ import { showToast } from 'vant'
 const router = useRouter()
 const content = ref('')
 const imageUrl = ref('')
+const imageFile = ref<File | null>(null)
 const moodTag = ref<'miss' | 'cheer' | 'goodnight' | 'surprise'>('miss')
 const publishType = ref('now')
 const publishTime = ref('')
 const loading = ref(false)
+const uploading = ref(false)
 
 const moodOptions = Object.entries(MOOD_TAGS).map(([key, value]) => ({
   value: key,
   label: `${value.emoji} ${value.label}`,
   color: value.color
 }))
+
+async function handleImageUpload(file: File) {
+  uploading.value = true
+  try {
+    const url = await messageApi.uploadImage(file)
+    imageUrl.value = url
+    imageFile.value = file
+    showToast('图片上传成功')
+    return file
+  } catch (error) {
+    console.error('图片上传失败:', error)
+    showToast('图片上传失败')
+    return null
+  } finally {
+    uploading.value = false
+  }
+}
 
 async function handleSubmit() {
   if (!content.value.trim()) {
@@ -94,10 +113,17 @@ function goBack() {
 
         <div class="section">
           <div class="section-title">添加图片（可选）</div>
-          <van-field
-            v-model="imageUrl"
-            placeholder="图片URL"
-          />
+          <van-uploader
+            v-model="imageFile"
+            :max-count="1"
+            :after-read="handleImageUpload"
+            :loading="uploading"
+          >
+            <van-button icon="photo" type="primary" plain>选择图片</van-button>
+          </van-uploader>
+          <div v-if="imageUrl" class="image-preview">
+            <img :src="imageUrl" alt="预览图" />
+          </div>
         </div>
 
         <div class="section">
@@ -179,5 +205,16 @@ function goBack() {
 
 .submit-section {
   margin-top: 24px;
+}
+
+.image-preview {
+  margin-top: 12px;
+}
+
+.image-preview img {
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+  border-radius: 12px;
 }
 </style>

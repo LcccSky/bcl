@@ -88,6 +88,26 @@ export const messageApi = {
     const { data, error } = await supabase.rpc('increment_likes', { message_id: id })
     if (error) throw error
     return data
+  },
+
+  // 上传图片
+  async uploadImage(file: File) {
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`
+    const filePath = `messages/${fileName}`
+
+    const { error } = await supabase.storage
+      .from('images')
+      .upload(filePath, file)
+
+    if (error) throw error
+
+    // 获取公开URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('images')
+      .getPublicUrl(filePath)
+
+    return publicUrl
   }
 }
 
