@@ -93,6 +93,7 @@ function getMoodInfo(tag: string) {
     <van-floating-bubble
       axis="xy"
       icon="plus"
+      magnetic="x"
       @click="goToAdmin"
     />
   </div>
@@ -102,7 +103,11 @@ function getMoodInfo(tag: string) {
 .message-list {
   min-height: 100vh;
   background: linear-gradient(135deg, #ffeef8 0%, #fff5f7 100%);
-  padding-bottom: 20px;
+  padding-bottom: 80px;
+}
+
+:deep(.van-floating-bubble) {
+  z-index: 999 !important;
 }
 
 .header {
