@@ -26,7 +26,9 @@ async function loadMessage() {
     // 标记为已读
     if (!data.is_read) {
       await messageApi.markAsRead(id)
-      message.value.is_read = true
+      if (message.value) {
+        message.value.is_read = true
+      }
     }
   } catch (error) {
     console.error('加载留言失败:', error)

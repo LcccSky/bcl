@@ -46,7 +46,7 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   document.title = (to.meta.title as string) || '心语盒子'
   next()
 })

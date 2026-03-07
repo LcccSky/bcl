@@ -31,7 +31,7 @@ export const useMessageStore = defineStore('message', () => {
   function updateMessage(id: string, data: Partial<Message>) {
     const index = messages.value.findIndex(m => m.id === id)
     if (index !== -1) {
-      messages.value[index] = { ...messages.value[index], ...data }
+      messages.value[index] = { ...messages.value[index], ...data } as Message
     }
   }
 
