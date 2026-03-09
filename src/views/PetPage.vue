@@ -14,10 +14,24 @@ const feeding = ref(false)
 const playing = ref(false)
 const loading = ref(false)
 const showPetNameDialog = ref(false)
+const petAnimation = ref('idle') // idle, happy, eating, playing, sad
 
 const petEmoji = computed(() => {
   if (!petStore.pet) return '🐱'
+
+  // 根据动画状态显示不同表情
+  if (petAnimation.value === 'eating') return '😋'
+  if (petAnimation.value === 'playing') return '😸'
+  if (petAnimation.value === 'happy') return '😻'
+  if (petAnimation.value === 'sad') return '😿'
+
+  // 根据等级显示不同猫咪
   const level = petStore.pet.level
+
+  // 根据心情显示表情
+  if (petStore.pet.happiness < 30) return '😿'
+  if (petStore.pet.hunger < 30) return '😾'
+
   if (level >= 10) return '😺'
   if (level >= 5) return '😸'
   return '🐱'
@@ -97,13 +111,23 @@ async function feedPet() {
   if (!petStore.pet) return
 
   feeding.value = true
+  petAnimation.value = 'eating'
   try {
     const pet = await petApi.feedPet(petStore.pet.id)
     petStore.setPet(pet)
     showToast('喂食成功！🍖')
+
+    // 动画效果
+    setTimeout(() => {
+      petAnimation.value = 'happy'
+      setTimeout(() => {
+        petAnimation.value = 'idle'
+      }, 2000)
+    }, 1500)
   } catch (error) {
     console.error('喂食失败:', error)
     showToast('喂食失败')
+    petAnimation.value = 'idle'
   } finally {
     feeding.value = false
   }
@@ -113,16 +137,38 @@ async function playWithPet() {
   if (!petStore.pet) return
 
   playing.value = true
+  petAnimation.value = 'playing'
   try {
     const pet = await petApi.playWithPet(petStore.pet.id)
     petStore.setPet(pet)
     showToast('玩耍成功！🎾')
+
+    // 动画效果
+    setTimeout(() => {
+      petAnimation.value = 'happy'
+      setTimeout(() => {
+        petAnimation.value = 'idle'
+      }, 2000)
+    }, 1500)
   } catch (error) {
     console.error('玩耍失败:', error)
     showToast('玩耍失败')
+    petAnimation.value = 'idle'
   } finally {
     playing.value = false
   }
+}
+
+// 点击小猫互动
+function petCat() {
+  if (!petStore.pet) return
+
+  petAnimation.value = 'happy'
+  showToast('喵~ 😻')
+
+  setTimeout(() => {
+    petAnimation.value = 'idle'
+  }, 2000)
 }
 </script>
 
@@ -137,9 +183,27 @@ async function playWithPet() {
     <div v-else-if="petStore.pet" class="pet-container">
       <!-- 宠物展示区 -->
       <div class="pet-display">
-        <div class="pet-avatar-large">{{ petEmoji }}</div>
+        <div
+          class="pet-avatar-large"
+          :class="{
+            'pet-bounce': petAnimation === 'happy',
+            'pet-shake': petAnimation === 'eating',
+            'pet-spin': petAnimation === 'playing'
+          }"
+          @click="petCat"
+        >
+          {{ petEmoji }}
+        </div>
         <h2 class="pet-name">{{ petStore.pet.name }}</h2>
-        <div class="pet-level">等级 {{ petStore.pet.level }}</div>
+        <div class="pet-level">Lv.{{ petStore.pet.level }}</div>
+        <div class="pet-status-text">
+          <span v-if="petAnimation === 'eating'">正在吃饭...</span>
+          <span v-else-if="petAnimation === 'playing'">正在玩耍...</span>
+          <span v-else-if="petAnimation === 'happy'">好开心！</span>
+          <span v-else-if="petStore.pet.hunger < 30">肚子好饿...</span>
+          <span v-else-if="petStore.pet.happiness < 30">有点无聊...</span>
+          <span v-else>心情不错~</span>
+        </div>
       </div>
 
       <!-- 经验条 -->
@@ -205,6 +269,7 @@ async function playWithPet() {
           block
           round
           :loading="feeding"
+          :disabled="feeding || playing"
           @click="feedPet"
           class="action-button feed-button"
         >
@@ -218,12 +283,19 @@ async function playWithPet() {
           block
           round
           :loading="playing"
+          :disabled="feeding || playing"
           @click="playWithPet"
           class="action-button play-button"
         >
           <span class="button-icon">🎾</span>
           <span>玩耍</span>
         </van-button>
+      </div>
+
+      <!-- 互动提示 -->
+      <div class="interaction-tip">
+        <span class="tip-icon">💡</span>
+        <span>点击小猫可以互动哦~</span>
       </div>
 
       <!-- 提示区 -->
@@ -304,6 +376,68 @@ async function playWithPet() {
   line-height: 1;
   margin-bottom: 16px;
   animation: float 3s ease-in-out infinite;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  user-select: none;
+}
+
+.pet-avatar-large:hover {
+  transform: scale(1.1);
+}
+
+.pet-avatar-large:active {
+  transform: scale(0.95);
+}
+
+/* 开心动画 */
+.pet-bounce {
+  animation: bounce 0.6s ease infinite !important;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+/* 吃饭动画 */
+.pet-shake {
+  animation: shake 0.5s ease infinite !important;
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+/* 玩耍动画 */
+.pet-spin {
+  animation: spin 1s ease-in-out infinite !important;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-15deg);
+  }
+  75% {
+    transform: rotate(15deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
 }
 
 @keyframes float {
@@ -326,6 +460,14 @@ async function playWithPet() {
   font-size: 16px;
   color: #999;
   font-weight: 500;
+}
+
+.pet-status-text {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #666;
+  font-style: italic;
+  min-height: 20px;
 }
 
 .exp-section {
@@ -418,6 +560,34 @@ async function playWithPet() {
 .play-button {
   background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
   border: none;
+}
+
+.interaction-tip {
+  text-align: center;
+  padding: 16px;
+  background: linear-gradient(135deg, #fff3f8 0%, #ffe8f0 100%);
+  border-radius: 12px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--primary-color);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.tip-icon {
+  font-size: 18px;
 }
 
 .tips-section {
