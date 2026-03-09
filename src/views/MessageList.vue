@@ -132,10 +132,19 @@ async function deleteMessage(id: string, event: Event) {
             @click="goToDetail(message.id)"
           >
             <div class="card-header">
-              <span class="mood-tag" :style="{ color: getMoodInfo(message.mood_tag).color }">
-                {{ getMoodInfo(message.mood_tag).emoji }} {{ getMoodInfo(message.mood_tag).label }}
-              </span>
-              <span v-if="!message.is_read" class="new-badge">NEW</span>
+              <div class="header-left">
+                <span class="mood-tag" :style="{ color: getMoodInfo(message.mood_tag).color }">
+                  {{ getMoodInfo(message.mood_tag).emoji }} {{ getMoodInfo(message.mood_tag).label }}
+                </span>
+              </div>
+              <div class="header-right">
+                <span v-if="!message.is_read" class="new-badge">NEW</span>
+              </div>
+            </div>
+
+            <div class="card-meta">
+              <span class="meta-author">{{ message.author_name || '匿名' }}</span>
+              <span class="meta-date">{{ formatDate(message.publish_at) }}</span>
             </div>
 
             <div class="card-content">
@@ -145,12 +154,10 @@ async function deleteMessage(id: string, event: Event) {
 
             <div class="card-footer">
               <div class="footer-left">
-                <span class="time">{{ formatDate(message.publish_at) }}</span>
-                <span v-if="message.author_name" class="author">· {{ message.author_name }}</span>
-              </div>
-              <div class="footer-right">
                 <span class="likes">❤️ {{ message.likes_count }}</span>
                 <span class="comments">💬 {{ message.replies_count || 0 }}</span>
+              </div>
+              <div class="footer-right">
                 <template v-if="isMyMessage(message)">
                   <van-button size="mini" type="primary" plain @click="goToEdit(message.id, $event)">编辑</van-button>
                   <van-button size="mini" type="danger" plain @click="deleteMessage(message.id, $event)">删除</van-button>
@@ -258,7 +265,17 @@ async function deleteMessage(id: string, event: Event) {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
 }
 
 .mood-tag {
@@ -270,6 +287,26 @@ async function deleteMessage(id: string, event: Event) {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+}
+
+.card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 107, 157, 0.08);
+}
+
+.meta-author {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.meta-date {
+  font-size: 13px;
+  color: #999;
 }
 
 .new-badge {
@@ -284,7 +321,7 @@ async function deleteMessage(id: string, event: Event) {
 }
 
 .card-content {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .message-text {
@@ -312,7 +349,6 @@ async function deleteMessage(id: string, event: Event) {
   justify-content: space-between;
   align-items: center;
   font-size: 13px;
-  color: #999;
   padding-top: 12px;
   border-top: 1px solid rgba(255, 107, 157, 0.08);
   gap: 12px;
@@ -321,25 +357,16 @@ async function deleteMessage(id: string, event: Event) {
 .footer-left {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 12px;
   flex: 1;
   min-width: 0;
-}
-
-.footer-left .time {
-  color: #999;
 }
 
 .footer-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   flex-shrink: 0;
-}
-
-.author {
-  color: var(--primary-color);
-  font-weight: 600;
 }
 
 .likes,
