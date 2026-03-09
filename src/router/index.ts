@@ -48,6 +48,12 @@ const router = createRouter({
       name: 'login',
       component: () => import('@/views/Login.vue'),
       meta: { title: '登录' }
+    },
+    {
+      path: '/pet',
+      name: 'pet',
+      component: () => import('@/views/PetPage.vue'),
+      meta: { title: '我的猫猫' }
     }
   ]
 })

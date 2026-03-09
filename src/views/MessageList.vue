@@ -8,7 +8,6 @@ import { MOOD_TAGS } from '@/types'
 import { formatDate } from '@/utils/date'
 import type { Message } from '@/types'
 import { showConfirmDialog, showToast } from 'vant'
-import PetWidget from '@/components/PetWidget.vue'
 
 const router = useRouter()
 const messageStore = useMessageStore()
@@ -187,8 +186,12 @@ async function deleteMessage(id: string, event: Event) {
       @click="goToAdmin"
     />
 
-    <!-- 宠物小部件 -->
-    <PetWidget />
+    <!-- 底部导航栏 -->
+    <van-tabbar route>
+      <van-tabbar-item to="/messages" icon="chat-o">留言</van-tabbar-item>
+      <van-tabbar-item to="/pet" icon="smile-o">猫猫</van-tabbar-item>
+      <van-tabbar-item to="/stats" icon="bar-chart-o">故事</van-tabbar-item>
+    </van-tabbar>
   </div>
 </template>
 
@@ -196,7 +199,7 @@ async function deleteMessage(id: string, event: Event) {
 .message-list {
   min-height: 100vh;
   background: linear-gradient(135deg, #ffeef8 0%, #fff5f7 100%);
-  padding-bottom: 80px;
+  padding-bottom: 60px;
 }
 
 :deep(.van-floating-bubble) {

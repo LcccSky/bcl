@@ -50,6 +50,13 @@ function goBack() {
     <div class="love-quote">
       <p>"每一条留言，都是我对你的思念"</p>
     </div>
+
+    <!-- 底部导航栏 -->
+    <van-tabbar route>
+      <van-tabbar-item to="/messages" icon="chat-o">留言</van-tabbar-item>
+      <van-tabbar-item to="/pet" icon="smile-o">猫猫</van-tabbar-item>
+      <van-tabbar-item to="/stats" icon="bar-chart-o">故事</van-tabbar-item>
+    </van-tabbar>
   </div>
 </template>
 
@@ -57,6 +64,7 @@ function goBack() {
 .stats {
   min-height: 100vh;
   background: linear-gradient(135deg, #ffeef8 0%, #fff5f7 100%);
+  padding-bottom: 60px;
 }
 
 .stats-content {
