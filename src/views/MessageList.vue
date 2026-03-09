@@ -68,10 +68,6 @@ function goToDetail(id: string) {
   router.push(`/message/${id}`)
 }
 
-function goToStats() {
-  router.push('/stats')
-}
-
 function goToAdmin() {
   router.push('/admin/new')
 }
@@ -115,9 +111,6 @@ async function deleteMessage(id: string, event: Event) {
       <div class="header-actions">
         <van-button plain type="primary" size="small" icon="calendar-o" @click="showDatePicker">
           日期
-        </van-button>
-        <van-button plain type="primary" size="small" @click="goToStats">
-          统计
         </van-button>
       </div>
     </div>
