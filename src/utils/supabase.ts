@@ -297,3 +297,290 @@ export const petApi = {
     return data
   }
 }
+
+// 愿望清单相关API
+export const wishApi = {
+  // 获取所有愿望
+  async getWishes() {
+    const { data, error } = await supabase
+      .from('wishes')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return data
+  },
+
+  // 创建愿望
+  async createWish(wishData: { title: string; description?: string; category: string; created_by: string }) {
+    const { data, error } = await supabase
+      .from('wishes')
+      .insert({
+        ...wishData,
+        is_completed: false
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // 完成愿望
+  async completeWish(wishId: string) {
+    const { data, error } = await supabase
+      .from('wishes')
+      .update({
+        is_completed: true,
+        completed_at: new Date().toISOString()
+      })
+      .eq('id', wishId)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // 取消完成
+  async uncompleteWish(wishId: string) {
+    const { data, error } = await supabase
+      .from('wishes')
+      .update({
+        is_completed: false,
+        completed_at: null
+      })
+      .eq('id', wishId)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // 删除愿望
+  async deleteWish(wishId: string) {
+    const { error } = await supabase
+      .from('wishes')
+      .delete()
+      .eq('id', wishId)
+
+    if (error) throw error
+  }
+}
+
+// "想你了"功能API
+export const missYouApi = {
+  // 发送"想你了"
+  async sendMissYou(fromUser: string, toUser: string) {
+    const { data, error } = await supabase
+      .from('miss_you')
+      .insert({
+        from_user: fromUser,
+        to_user: toUser
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // 获取今天收到的"想你了"次数
+  async getTodayMissYouCount(userId: string) {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const { data, error } = await supabase
+      .from('miss_you')
+      .select('*')
+      .eq('to_user', userId)
+      .gte('created_at', today.toISOString())
+
+    if (error) throw error
+    return data?.length || 0
+  },
+
+  // 获取最近的"想你了"记录
+  async getRecentMissYou(userId: string, limit = 10) {
+    const { data, error } = await supabase
+      .from('miss_you')
+      .select('*')
+      .eq('to_user', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) throw error
+    return data
+  }
+}
+
+// 每日打卡API
+export const checkInApi = {
+  // 获取今天的打卡记录
+  async getTodayCheckIn(userId: string) {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const { data, error } = await supabase
+      .from('check_ins')
+      .select('*')
+      .eq('user_id', userId)
+      .gte('created_at', today.toISOString())
+
+    if (error) throw error
+    return data
+  },
+
+  // 早安打卡
+  async morningCheckIn(userId: string, message?: string) {
+    const today = new Date().toISOString().split('T')[0]
+
+    const { data, error } = await supabase
+      .from('check_ins')
+      .insert({
+        user_id: userId,
+        check_in_date: today,
+        type: 'morning',
+        message
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // 晚安打卡
+  async nightCheckIn(userId: string, message?: string) {
+    const today = new Date().toISOString().split('T')[0]
+
+    const { data, error } = await supabase
+      .from('check_ins')
+      .insert({
+        user_id: userId,
+        check_in_date: today,
+        type: 'night',
+        message
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // 获取连续打卡天数
+  async getCheckInStreak(userId: string) {
+    const { data, error } = await supabase
+      .from('check_ins')
+      .select('check_in_date')
+      .eq('user_id', userId)
+      .order('check_in_date', { ascending: false })
+
+    if (error) throw error
+
+    if (!data || data.length === 0) return 0
+
+    let streak = 0
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const dates = [...new Set(data.map(d => d.check_in_date))].sort().reverse()
+
+    for (let i = 0; i < dates.length; i++) {
+      const checkDate = new Date(dates[i])
+      checkDate.setHours(0, 0, 0, 0)
+
+      const expectedDate = new Date(today)
+      expectedDate.setDate(expectedDate.getDate() - i)
+      expectedDate.setHours(0, 0, 0, 0)
+
+      if (checkDate.getTime() === expectedDate.getTime()) {
+        streak++
+      } else {
+        break
+      }
+    }
+
+    return streak
+  }
+}
+
+// 纪念日管理API
+export const anniversaryApi = {
+  // 获取所有纪念日
+  async getAnniversaries() {
+    const { data, error } = await supabase
+      .from('anniversaries')
+      .select('*')
+      .order('date', { ascending: true })
+
+    if (error) throw error
+    return data
+  },
+
+  // 创建纪念日
+  async createAnniversary(anniversaryData: {
+    title: string
+    date: string
+    type: string
+    description?: string
+    is_recurring: boolean
+  }) {
+    const { data, error } = await supabase
+      .from('anniversaries')
+      .insert(anniversaryData)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // 更新纪念日
+  async updateAnniversary(id: string, updates: Partial<{
+    title: string
+    date: string
+    type: string
+    description: string
+    is_recurring: boolean
+  }>) {
+    const { data, error } = await supabase
+      .from('anniversaries')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // 删除纪念日
+  async deleteAnniversary(id: string) {
+    const { error } = await supabase
+      .from('anniversaries')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
+  },
+
+  // 获取即将到来的纪念日
+  async getUpcomingAnniversaries(days = 30) {
+    const today = new Date()
+    const futureDate = new Date()
+    futureDate.setDate(futureDate.getDate() + days)
+
+    const { data, error } = await supabase
+      .from('anniversaries')
+      .select('*')
+      .gte('date', today.toISOString().split('T')[0])
+      .lte('date', futureDate.toISOString().split('T')[0])
+      .order('date', { ascending: true })
+
+    if (error) throw error
+    return data
+  }
+}

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { messageApi } from '@/utils/supabase'
+import { messageApi, missYouApi } from '@/utils/supabase'
 import { useMessageStore } from '@/stores/message'
 import { useUserStore } from '@/stores/user'
 import { MOOD_TAGS } from '@/types'
@@ -17,6 +17,8 @@ const allMessages = ref<Message[]>([])
 const loading = ref(false)
 const selectedDate = ref<Date | null>(null)
 const showCalendarPicker = ref(false)
+const missYouCount = ref(0)
+const sending = ref(false)
 
 const filteredMessages = computed(() => {
   if (!selectedDate.value) return messages.value
@@ -33,6 +35,7 @@ const filteredMessages = computed(() => {
 
 onMounted(async () => {
   await loadMessages()
+  await loadMissYouCount()
 })
 
 async function loadMessages() {
@@ -46,6 +49,38 @@ async function loadMessages() {
     console.error('加载留言失败:', error)
   } finally {
     loading.value = false
+  }
+}
+
+async function loadMissYouCount() {
+  if (!userStore.userId) return
+  try {
+    missYouCount.value = await missYouApi.getTodayMissYouCount(userStore.userId)
+  } catch (error) {
+    console.error('加载想你了次数失败:', error)
+  }
+}
+
+async function sendMissYou() {
+  if (!userStore.userId) {
+    showToast('请先设置昵称')
+    return
+  }
+
+  if (sending.value) return
+
+  sending.value = true
+  try {
+    // 这里假设对方的userId是固定的，实际应该从配置或数据库获取
+    const otherUserId = userStore.userId === 'user1' ? 'user2' : 'user1'
+    await missYouApi.sendMissYou(userStore.userId, otherUserId)
+    showToast('已发送"想你了" 💕')
+    await loadMissYouCount()
+  } catch (error) {
+    console.error('发送失败:', error)
+    showToast('发送失败')
+  } finally {
+    sending.value = false
   }
 }
 
@@ -112,7 +147,22 @@ async function deleteMessage(id: string, event: Event) {
         <van-button plain type="primary" size="small" icon="calendar-o" @click="showDatePicker">
           日期
         </van-button>
+        <van-button
+          plain
+          type="danger"
+          size="small"
+          icon="like-o"
+          :loading="sending"
+          @click="sendMissYou"
+        >
+          想你了
+        </van-button>
       </div>
+    </div>
+
+    <div v-if="missYouCount > 0" class="miss-you-banner">
+      <span class="miss-you-icon">💕</span>
+      <span>今天收到了 {{ missYouCount }} 次"想你了"</span>
     </div>
 
     <div v-if="selectedDate" class="date-filter-bar">
@@ -190,6 +240,7 @@ async function deleteMessage(id: string, event: Event) {
     <van-tabbar route>
       <van-tabbar-item to="/messages" icon="chat-o">留言</van-tabbar-item>
       <van-tabbar-item to="/pet" icon="smile-o">猫猫</van-tabbar-item>
+      <van-tabbar-item to="/wish" icon="star-o">愿望</van-tabbar-item>
       <van-tabbar-item to="/stats" icon="bar-chart-o">故事</van-tabbar-item>
     </van-tabbar>
   </div>
@@ -228,6 +279,44 @@ async function deleteMessage(id: string, event: Event) {
 .header-actions {
   display: flex;
   gap: 8px;
+}
+
+.miss-you-banner {
+  background: linear-gradient(135deg, #ff6b9d 0%, #ff8fab 100%);
+  color: white;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  animation: slideDown 0.5s ease;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.miss-you-icon {
+  font-size: 18px;
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
 }
 
 .date-filter-bar {

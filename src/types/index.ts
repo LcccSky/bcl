@@ -61,3 +61,57 @@ export interface Pet {
   created_at: string
   updated_at: string
 }
+
+export interface Wish {
+  id: string
+  title: string
+  description?: string
+  category: 'travel' | 'food' | 'movie' | 'activity' | 'other'
+  is_completed: boolean
+  completed_at?: string
+  created_by: string
+  created_at: string
+  updated_at: string
+}
+
+export const WISH_CATEGORIES = {
+  travel: { label: '旅行', emoji: '✈️', color: '#4caf50' },
+  food: { label: '美食', emoji: '🍜', color: '#ff9800' },
+  movie: { label: '电影', emoji: '🎬', color: '#9c27b0' },
+  activity: { label: '活动', emoji: '🎯', color: '#2196f3' },
+  other: { label: '其他', emoji: '💫', color: '#607d8b' }
+} as const
+
+export interface MissYou {
+  id: string
+  from_user: string
+  to_user: string
+  created_at: string
+}
+
+export interface CheckIn {
+  id: string
+  user_id: string
+  check_in_date: string
+  type: 'morning' | 'night'
+  message?: string
+  created_at: string
+}
+
+export interface Anniversary {
+  id: string
+  title: string
+  date: string
+  type: 'together' | 'birthday' | 'first_date' | 'custom'
+  description?: string
+  is_recurring: boolean
+  created_at: string
+  updated_at: string
+}
+
+export const ANNIVERSARY_TYPES = {
+  together: { label: '在一起', emoji: '💕', color: '#ff6b9d' },
+  birthday: { label: '生日', emoji: '🎂', color: '#ffd93d' },
+  first_date: { label: '第一次约会', emoji: '🌹', color: '#f4a261' },
+  custom: { label: '自定义', emoji: '🎉', color: '#a8dadc' }
+} as const

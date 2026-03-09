@@ -54,6 +54,18 @@ const router = createRouter({
       name: 'pet',
       component: () => import('@/views/PetPage.vue'),
       meta: { title: '我的猫猫' }
+    },
+    {
+      path: '/wish',
+      name: 'wish',
+      component: () => import('@/views/WishList.vue'),
+      meta: { title: '愿望清单' }
+    },
+    {
+      path: '/checkin',
+      name: 'checkin',
+      component: () => import('@/views/CheckIn.vue'),
+      meta: { title: '每日打卡' }
     }
   ]
 })
