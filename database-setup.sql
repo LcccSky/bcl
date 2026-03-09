@@ -76,3 +76,27 @@ CREATE POLICY "Anyone can view anniversaries" ON anniversaries FOR SELECT USING 
 CREATE POLICY "Anyone can create anniversaries" ON anniversaries FOR INSERT WITH CHECK (true);
 CREATE POLICY "Anyone can update anniversaries" ON anniversaries FOR UPDATE USING (true);
 CREATE POLICY "Anyone can delete anniversaries" ON anniversaries FOR DELETE USING (true);
+
+-- 时光胶囊表
+CREATE TABLE IF NOT EXISTS time_capsules (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  image_url TEXT,
+  created_by TEXT NOT NULL,
+  unlock_date DATE NOT NULL,
+  is_unlocked BOOLEAN DEFAULT FALSE,
+  unlocked_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_time_capsules_unlock_date ON time_capsules(unlock_date);
+CREATE INDEX IF NOT EXISTS idx_time_capsules_is_unlocked ON time_capsules(is_unlocked);
+
+ALTER TABLE time_capsules ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can view time_capsules" ON time_capsules FOR SELECT USING (true);
+CREATE POLICY "Anyone can create time_capsules" ON time_capsules FOR INSERT WITH CHECK (true);
+CREATE POLICY "Anyone can update time_capsules" ON time_capsules FOR UPDATE USING (true);
+CREATE POLICY "Anyone can delete time_capsules" ON time_capsules FOR DELETE USING (true);

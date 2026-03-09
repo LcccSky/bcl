@@ -584,3 +584,79 @@ export const anniversaryApi = {
     return data
   }
 }
+
+// 时光胶囊API
+export const timeCapsuleApi = {
+  // 获取所有时光胶囊
+  async getTimeCapsules() {
+    const { data, error } = await supabase
+      .from('time_capsules')
+      .select('*')
+      .order('unlock_date', { ascending: true })
+
+    if (error) throw error
+    return data
+  },
+
+  // 创建时光胶囊
+  async createTimeCapsule(capsuleData: {
+    title: string
+    content: string
+    image_url?: string
+    created_by: string
+    unlock_date: string
+  }) {
+    const { data, error } = await supabase
+      .from('time_capsules')
+      .insert({
+        ...capsuleData,
+        is_unlocked: false
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // 解锁时光胶囊
+  async unlockTimeCapsule(capsuleId: string) {
+    const { data, error } = await supabase
+      .from('time_capsules')
+      .update({
+        is_unlocked: true,
+        unlocked_at: new Date().toISOString()
+      })
+      .eq('id', capsuleId)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // 删除时光胶囊
+  async deleteTimeCapsule(capsuleId: string) {
+    const { error } = await supabase
+      .from('time_capsules')
+      .delete()
+      .eq('id', capsuleId)
+
+    if (error) throw error
+  },
+
+  // 获取可解锁的时光胶囊
+  async getUnlockableTimeCapsules() {
+    const today = new Date().toISOString().split('T')[0]
+
+    const { data, error } = await supabase
+      .from('time_capsules')
+      .select('*')
+      .eq('is_unlocked', false)
+      .lte('unlock_date', today)
+      .order('unlock_date', { ascending: true })
+
+    if (error) throw error
+    return data
+  }
+}

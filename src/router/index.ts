@@ -66,6 +66,18 @@ const router = createRouter({
       name: 'checkin',
       component: () => import('@/views/CheckIn.vue'),
       meta: { title: '每日打卡' }
+    },
+    {
+      path: '/theme',
+      name: 'theme',
+      component: () => import('@/views/ThemeSettings.vue'),
+      meta: { title: '主题设置' }
+    },
+    {
+      path: '/capsule',
+      name: 'capsule',
+      component: () => import('@/views/TimeCapsule.vue'),
+      meta: { title: '时光胶囊' }
     }
   ]
 })

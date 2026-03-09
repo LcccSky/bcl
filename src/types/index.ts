@@ -115,3 +115,16 @@ export const ANNIVERSARY_TYPES = {
   first_date: { label: '第一次约会', emoji: '🌹', color: '#f4a261' },
   custom: { label: '自定义', emoji: '🎉', color: '#a8dadc' }
 } as const
+
+export interface TimeCapsule {
+  id: string
+  title: string
+  content: string
+  image_url?: string
+  created_by: string
+  unlock_date: string
+  is_unlocked: boolean
+  unlocked_at?: string
+  created_at: string
+  updated_at: string
+}

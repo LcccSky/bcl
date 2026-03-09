@@ -122,6 +122,14 @@ function goToCheckIn() {
   router.push('/checkin')
 }
 
+function goToTheme() {
+  router.push('/theme')
+}
+
+function goToCapsule() {
+  router.push('/capsule')
+}
+
 const showDatePicker = ref(false)
 
 function onDateConfirm(date: Date) {
@@ -161,6 +169,18 @@ function onDateConfirm(date: Date) {
         <div class="stat-icon">✅</div>
         <div class="stat-value">打卡</div>
         <div class="stat-label">每日打卡</div>
+      </div>
+
+      <div class="stat-card clickable" @click="goToTheme">
+        <div class="stat-icon">🎨</div>
+        <div class="stat-value">主题</div>
+        <div class="stat-label">切换主题</div>
+      </div>
+
+      <div class="stat-card clickable" @click="goToCapsule">
+        <div class="stat-icon">⏰</div>
+        <div class="stat-value">胶囊</div>
+        <div class="stat-label">时光胶囊</div>
       </div>
     </div>
 
@@ -288,6 +308,7 @@ function onDateConfirm(date: Date) {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
+  margin-bottom: 20px;
 }
 
 .stat-card {
