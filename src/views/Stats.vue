@@ -1,12 +1,48 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { messageApi } from '@/utils/supabase'
 
 const router = useRouter()
-const totalMessages = ref(128)
-const daysTogether = ref(365)
-const consecutiveDays = ref(30)
-const monthlyMessages = ref(24)
+const totalMessages = ref(0)
+const loading = ref(false)
+
+// 在一起的日期：2026年3月3日
+const togetherDate = new Date('2026-03-03')
+
+// 计算在一起的天数
+const daysTogether = computed(() => {
+  const now = new Date()
+  const diff = now.getTime() - togetherDate.getTime()
+  return Math.floor(diff / (1000 * 60 * 60 * 24))
+})
+
+// 计算本月留言数
+const monthlyMessages = computed(() => {
+  const now = new Date()
+  const currentMonth = now.getMonth()
+  const currentYear = now.getFullYear()
+
+  // 这里需要从实际数据中筛选本月的留言
+  // 暂时返回 0，等加载数据后更新
+  return 0
+})
+
+onMounted(async () => {
+  await loadStats()
+})
+
+async function loadStats() {
+  loading.value = true
+  try {
+    const messages = await messageApi.getPublishedMessages()
+    totalMessages.value = messages.length
+  } catch (error) {
+    console.error('加载统计失败:', error)
+  } finally {
+    loading.value = false
+  }
+}
 
 function goBack() {
   router.back()
@@ -35,15 +71,15 @@ function goBack() {
       </div>
 
       <div class="stat-card">
-        <div class="stat-icon">🔥</div>
-        <div class="stat-value">{{ consecutiveDays }}</div>
-        <div class="stat-label">连续收到</div>
+        <div class="stat-icon">❤️</div>
+        <div class="stat-value">{{ totalMessages }}</div>
+        <div class="stat-label">总留言数</div>
       </div>
 
       <div class="stat-card">
-        <div class="stat-icon">❤️</div>
-        <div class="stat-value">{{ monthlyMessages }}</div>
-        <div class="stat-label">本月留言</div>
+        <div class="stat-icon">🎉</div>
+        <div class="stat-value">2026.3.3</div>
+        <div class="stat-label">在一起的日子</div>
       </div>
     </div>
 
@@ -94,10 +130,11 @@ function goBack() {
 }
 
 .stat-value {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 600;
   color: var(--primary-color);
   margin-bottom: 8px;
+  word-break: break-word;
 }
 
 .stat-label {
