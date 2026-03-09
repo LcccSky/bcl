@@ -23,19 +23,19 @@ const moodOptions = Object.entries(MOOD_TAGS).map(([key, value]) => ({
 }))
 
 async function handleImageUpload(item: UploaderFileListItem | UploaderFileListItem[]) {
+  const fileItem = Array.isArray(item) ? item[0] : item
+  if (!fileItem || !fileItem.file) return
+
   uploading.value = true
   try {
-    const fileItem = Array.isArray(item) ? item[0] : item
-    if (!fileItem || !fileItem.file) {
-      throw new Error('No file selected')
-    }
-
     const url = await messageApi.uploadImage(fileItem.file)
     imageUrl.value = url
     showToast('图片上传成功')
   } catch (error) {
     console.error('图片上传失败:', error)
-    showToast('图片上传失败')
+    showToast('图片上传失败，请重试')
+    // 移除上传失败的文件
+    imageFiles.value = []
   } finally {
     uploading.value = false
   }
@@ -120,13 +120,16 @@ function goBack() {
             v-model="imageFiles"
             :max-count="1"
             :after-read="handleImageUpload"
-            :loading="uploading"
+            :preview-image="false"
             accept="image/*"
           >
-            <van-button icon="photo" type="primary" plain>选择图片</van-button>
+            <van-button icon="photo" type="primary" plain :loading="uploading">
+              {{ uploading ? '上传中...' : '选择图片' }}
+            </van-button>
           </van-uploader>
           <div v-if="imageUrl" class="image-preview">
             <img :src="imageUrl" alt="预览图" />
+            <van-button size="small" type="danger" @click="imageUrl = ''; imageFiles = []">删除</van-button>
           </div>
         </div>
 
