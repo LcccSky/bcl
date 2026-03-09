@@ -130,6 +130,10 @@ function goToCapsule() {
   router.push('/capsule')
 }
 
+function goToQuiz() {
+  router.push('/quiz')
+}
+
 const showDatePicker = ref(false)
 
 function onDateConfirm(date: Date) {
@@ -181,6 +185,12 @@ function onDateConfirm(date: Date) {
         <div class="stat-icon">⏰</div>
         <div class="stat-value">胶囊</div>
         <div class="stat-label">时光胶囊</div>
+      </div>
+
+      <div class="stat-card clickable" @click="goToQuiz">
+        <div class="stat-icon">💑</div>
+        <div class="stat-value">问答</div>
+        <div class="stat-label">默契测试</div>
       </div>
     </div>
 
@@ -306,9 +316,15 @@ function onDateConfirm(date: Date) {
 .stats-content {
   padding: 20px;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .stats-content {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .stat-card {

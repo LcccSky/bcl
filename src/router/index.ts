@@ -78,6 +78,12 @@ const router = createRouter({
       name: 'capsule',
       component: () => import('@/views/TimeCapsule.vue'),
       meta: { title: '时光胶囊' }
+    },
+    {
+      path: '/quiz',
+      name: 'quiz',
+      component: () => import('@/views/QuizGame.vue'),
+      meta: { title: '情侣问答' }
     }
   ]
 })
