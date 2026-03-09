@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { messageApi } from '@/utils/supabase'
+import { messageApi, petApi } from '@/utils/supabase'
 import { MOOD_TAGS } from '@/types'
 import { showToast } from 'vant'
 import type { UploaderFileListItem } from 'vant'
 import { useUserStore } from '@/stores/user'
+import { usePetStore } from '@/stores/pet'
 
 const router = useRouter()
 const userStore = useUserStore()
+const petStore = usePetStore()
 const content = ref('')
 const imageUrl = ref('')
 const imageFiles = ref<UploaderFileListItem[]>([])
@@ -63,7 +65,17 @@ async function handleSubmit() {
     }
 
     await messageApi.createMessage(messageData)
-    showToast('发布成功')
+
+    // 发布留言奖励：+10 经验
+    if (petStore.pet) {
+      await petApi.addExp(petStore.pet.id, 10)
+      const updatedPet = await petApi.getPet()
+      if (updatedPet) {
+        petStore.setPet(updatedPet)
+      }
+    }
+
+    showToast('发布成功，小猫获得了 10 经验！')
     router.back()
   } catch (error) {
     console.error('发布失败:', error)

@@ -48,3 +48,16 @@ export const MOOD_TAGS = {
   goodnight: { label: '晚安', emoji: '🌙', color: '#a8dadc' },
   surprise: { label: '惊喜', emoji: '🎁', color: '#f4a261' }
 } as const
+
+export interface Pet {
+  id: string
+  name: string
+  level: number
+  exp: number
+  hunger: number // 0-100, 饥饿值
+  happiness: number // 0-100, 心情值
+  last_fed_at: string
+  last_played_at: string
+  created_at: string
+  updated_at: string
+}

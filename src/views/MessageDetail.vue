@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { messageApi, replyApi } from '@/utils/supabase'
+import { messageApi, replyApi, petApi } from '@/utils/supabase'
 import { useUserStore } from '@/stores/user'
+import { usePetStore } from '@/stores/pet'
 import { MOOD_TAGS } from '@/types'
 import { formatDateTime } from '@/utils/date'
 import type { Message, Reply } from '@/types'
@@ -11,6 +12,7 @@ import { showToast, showConfirmDialog } from 'vant'
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+const petStore = usePetStore()
 const message = ref<Message | null>(null)
 const replies = ref<Reply[]>([])
 const loading = ref(false)
@@ -75,7 +77,17 @@ async function submitReply() {
 
     await replyApi.createReply(replyData)
     replyContent.value = ''
-    showToast('评论成功')
+
+    // 发表评论奖励：+3 经验
+    if (petStore.pet) {
+      await petApi.addExp(petStore.pet.id, 3)
+      const updatedPet = await petApi.getPet()
+      if (updatedPet) {
+        petStore.setPet(updatedPet)
+      }
+    }
+
+    showToast('评论成功，小猫获得了 3 经验！')
     await loadReplies()
   } catch (error) {
     console.error('评论失败:', error)
@@ -112,9 +124,19 @@ async function handleLike() {
   try {
     await messageApi.likeMessage(message.value.id)
     message.value.likes_count++
+
+    // 点赞奖励：+5 经验
+    if (petStore.pet) {
+      await petApi.addExp(petStore.pet.id, 5)
+      const updatedPet = await petApi.getPet()
+      if (updatedPet) {
+        petStore.setPet(updatedPet)
+      }
+    }
+
     showToast({
-      message: '❤️',
-      duration: 1000
+      message: '❤️ 小猫获得了 5 经验！',
+      duration: 1500
     })
   } catch (error) {
     console.error('点赞失败:', error)

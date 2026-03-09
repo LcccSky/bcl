@@ -178,3 +178,122 @@ export const userApi = {
     if (error) throw error
   }
 }
+
+// 宠物相关API
+export const petApi = {
+  // 获取宠物信息（只有一只宠物）
+  async getPet() {
+    const { data, error } = await supabase
+      .from('pets')
+      .select('*')
+      .single()
+
+    if (error && error.code !== 'PGRST116') throw error
+    return data
+  },
+
+  // 创建宠物
+  async createPet(petData: { name: string }) {
+    const { data, error } = await supabase
+      .from('pets')
+      .insert({
+        name: petData.name,
+        level: 1,
+        exp: 0,
+        hunger: 50,
+        happiness: 50,
+        last_fed_at: new Date().toISOString(),
+        last_played_at: new Date().toISOString()
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // 喂食
+  async feedPet(petId: string) {
+    const { data, error } = await supabase
+      .from('pets')
+      .update({
+        hunger: 100,
+        last_fed_at: new Date().toISOString()
+      })
+      .eq('id', petId)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // 玩耍
+  async playWithPet(petId: string) {
+    const { data, error } = await supabase
+      .from('pets')
+      .update({
+        happiness: 100,
+        last_played_at: new Date().toISOString()
+      })
+      .eq('id', petId)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // 增加经验值
+  async addExp(petId: string, expAmount: number) {
+    const pet = await this.getPet()
+    if (!pet) return null
+
+    const newExp = pet.exp + expAmount
+    const newLevel = Math.floor(newExp / 100) + 1
+
+    const { data, error } = await supabase
+      .from('pets')
+      .update({
+        exp: newExp,
+        level: newLevel
+      })
+      .eq('id', petId)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // 更新宠物状态（自动衰减）
+  async updatePetStatus(petId: string) {
+    const pet = await this.getPet()
+    if (!pet) return null
+
+    const now = new Date()
+    const lastFed = new Date(pet.last_fed_at)
+    const lastPlayed = new Date(pet.last_played_at)
+
+    // 每小时饥饿值减少5
+    const hoursSinceFed = (now.getTime() - lastFed.getTime()) / (1000 * 60 * 60)
+    const newHunger = Math.max(0, pet.hunger - Math.floor(hoursSinceFed * 5))
+
+    // 每小时心情值减少3
+    const hoursSincePlayed = (now.getTime() - lastPlayed.getTime()) / (1000 * 60 * 60)
+    const newHappiness = Math.max(0, pet.happiness - Math.floor(hoursSincePlayed * 3))
+
+    const { data, error } = await supabase
+      .from('pets')
+      .update({
+        hunger: newHunger,
+        happiness: newHappiness
+      })
+      .eq('id', petId)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+}

@@ -8,6 +8,7 @@ import { MOOD_TAGS } from '@/types'
 import { formatDate } from '@/utils/date'
 import type { Message } from '@/types'
 import { showConfirmDialog, showToast } from 'vant'
+import PetWidget from '@/components/PetWidget.vue'
 
 const router = useRouter()
 const messageStore = useMessageStore()
@@ -185,6 +186,9 @@ async function deleteMessage(id: string, event: Event) {
       magnetic="x"
       @click="goToAdmin"
     />
+
+    <!-- 宠物小部件 -->
+    <PetWidget />
   </div>
 </template>
 
