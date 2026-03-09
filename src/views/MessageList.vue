@@ -53,16 +53,16 @@ async function loadMessages() {
 }
 
 async function loadMissYouCount() {
-  if (!userStore.userId) return
+  if (!userStore.nickname) return
   try {
-    missYouCount.value = await missYouApi.getTodayMissYouCount(userStore.userId)
+    missYouCount.value = await missYouApi.getTodayMissYouCount(userStore.nickname)
   } catch (error) {
     console.error('加载想你了次数失败:', error)
   }
 }
 
 async function sendMissYou() {
-  if (!userStore.userId) {
+  if (!userStore.nickname) {
     showToast('请先设置昵称')
     return
   }
@@ -71,9 +71,9 @@ async function sendMissYou() {
 
   sending.value = true
   try {
-    // 这里假设对方的userId是固定的，实际应该从配置或数据库获取
-    const otherUserId = userStore.userId === 'user1' ? 'user2' : 'user1'
-    await missYouApi.sendMissYou(userStore.userId, otherUserId)
+    // 这里假设对方的昵称是固定的，实际应该从配置或数据库获取
+    const otherUser = userStore.nickname === '宝贝' ? '老公' : '宝贝'
+    await missYouApi.sendMissYou(userStore.nickname, otherUser)
     showToast('已发送"想你了" 💕')
     await loadMissYouCount()
   } catch (error) {

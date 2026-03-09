@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
 import { wishApi } from '@/utils/supabase'
 import { useUserStore } from '@/stores/user'
 import { showToast, showConfirmDialog } from 'vant'
 import type { Wish } from '@/types'
 import { WISH_CATEGORIES } from '@/types'
 
-const router = useRouter()
 const userStore = useUserStore()
 const wishes = ref<Wish[]>([])
 const loading = ref(false)
@@ -48,7 +46,7 @@ async function addWish() {
     return
   }
 
-  if (!userStore.userId) {
+  if (!userStore.nickname) {
     showToast('请先设置昵称')
     return
   }
@@ -58,7 +56,7 @@ async function addWish() {
       title: newWish.value.title,
       description: newWish.value.description,
       category: newWish.value.category,
-      created_by: userStore.userId
+      created_by: userStore.nickname
     })
     showToast('添加成功！')
     showAddDialog.value = false

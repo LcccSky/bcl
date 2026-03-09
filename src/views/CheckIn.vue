@@ -38,15 +38,15 @@ onMounted(async () => {
 })
 
 async function loadCheckIns() {
-  if (!userStore.userId) {
+  if (!userStore.nickname) {
     showToast('请先设置昵称')
     return
   }
 
   loading.value = true
   try {
-    todayCheckIns.value = await checkInApi.getTodayCheckIn(userStore.userId)
-    checkInStreak.value = await checkInApi.getCheckInStreak(userStore.userId)
+    todayCheckIns.value = await checkInApi.getTodayCheckIn(userStore.nickname)
+    checkInStreak.value = await checkInApi.getCheckInStreak(userStore.nickname)
   } catch (error) {
     console.error('加载打卡记录失败:', error)
     showToast('加载失败')
@@ -56,13 +56,13 @@ async function loadCheckIns() {
 }
 
 async function doMorningCheckIn() {
-  if (!userStore.userId) {
+  if (!userStore.nickname) {
     showToast('请先设置昵称')
     return
   }
 
   try {
-    await checkInApi.morningCheckIn(userStore.userId, morningMessage.value)
+    await checkInApi.morningCheckIn(userStore.nickname, morningMessage.value)
     showToast('早安打卡成功！☀️')
     showMorningDialog.value = false
     morningMessage.value = ''
@@ -74,13 +74,13 @@ async function doMorningCheckIn() {
 }
 
 async function doNightCheckIn() {
-  if (!userStore.userId) {
+  if (!userStore.nickname) {
     showToast('请先设置昵称')
     return
   }
 
   try {
-    await checkInApi.nightCheckIn(userStore.userId, nightMessage.value)
+    await checkInApi.nightCheckIn(userStore.nickname, nightMessage.value)
     showToast('晚安打卡成功！🌙')
     showNightDialog.value = false
     nightMessage.value = ''
