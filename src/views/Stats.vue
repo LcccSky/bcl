@@ -17,17 +17,6 @@ const daysTogether = computed(() => {
   return Math.floor(diff / (1000 * 60 * 60 * 24))
 })
 
-// 计算本月留言数
-const monthlyMessages = computed(() => {
-  const now = new Date()
-  const currentMonth = now.getMonth()
-  const currentYear = now.getFullYear()
-
-  // 这里需要从实际数据中筛选本月的留言
-  // 暂时返回 0，等加载数据后更新
-  return 0
-})
-
 onMounted(async () => {
   await loadStats()
 })
