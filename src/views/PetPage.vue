@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { usePetStore } from '@/stores/pet'
 import { useUserStore } from '@/stores/user'
 import { petApi } from '@/utils/supabase'
-import { showToast, showDialog } from 'vant'
+import { showToast } from 'vant'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -13,6 +13,7 @@ const petName = ref('')
 const feeding = ref(false)
 const playing = ref(false)
 const loading = ref(false)
+const showPetNameDialog = ref(false)
 
 const petEmoji = computed(() => {
   if (!petStore.pet) return '🐱'
@@ -62,20 +63,7 @@ async function loadPet() {
     let pet = await petApi.getPet()
 
     if (!pet) {
-      showDialog({
-        title: '欢迎！',
-        message: '给你们的小猫起个名字吧~',
-        showCancelButton: false,
-        beforeClose: async (action) => {
-          if (action === 'confirm' && petName.value.trim()) {
-            pet = await petApi.createPet({ name: petName.value })
-            petStore.setPet(pet)
-            showToast('小猫诞生了！')
-            return true
-          }
-          return false
-        }
-      })
+      showPetNameDialog.value = true
     } else {
       pet = await petApi.updatePetStatus(pet.id)
       petStore.setPet(pet)
@@ -85,6 +73,23 @@ async function loadPet() {
     showToast('加载失败')
   } finally {
     loading.value = false
+  }
+}
+
+async function confirmPetName() {
+  if (!petName.value.trim()) {
+    showToast('请输入小猫的名字')
+    return
+  }
+
+  try {
+    const pet = await petApi.createPet({ name: petName.value })
+    petStore.setPet(pet)
+    showPetNameDialog.value = false
+    showToast('小猫诞生了！')
+  } catch (error) {
+    console.error('创建宠物失败:', error)
+    showToast('创建失败')
   }
 }
 
@@ -244,6 +249,26 @@ async function playWithPet() {
     <div v-else class="empty-container">
       <van-empty description="还没有小猫哦" />
     </div>
+
+    <!-- 宠物命名对话框 -->
+    <van-dialog
+      v-model:show="showPetNameDialog"
+      title="欢迎！"
+      :show-cancel-button="false"
+      :close-on-click-overlay="false"
+      confirm-button-text="确定"
+      @confirm="confirmPetName"
+    >
+      <div style="padding: 16px">
+        <p style="margin-bottom: 12px; color: #666; text-align: center;">给你们的小猫起个名字吧~</p>
+        <van-field
+          v-model="petName"
+          placeholder="输入小猫的名字"
+          maxlength="10"
+          autofocus
+        />
+      </div>
+    </van-dialog>
   </div>
 </template>
 
