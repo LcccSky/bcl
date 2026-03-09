@@ -83,7 +83,7 @@ async function createCapsule() {
 }
 
 function onDateConfirm(date: Date) {
-  newCapsule.value.unlock_date = date.toISOString().split('T')[0]
+  newCapsule.value.unlock_date = date.toISOString().split('T')[0] || ''
   showDatePicker.value = false
 }
 

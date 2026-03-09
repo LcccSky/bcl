@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/user'
 import { showToast } from 'vant'
 
 const router = useRouter()
-const userStore = useUserStore()
 
 // 问答题库
 const questions = [
@@ -188,13 +186,13 @@ function restartGame() {
         </div>
 
         <div class="question-text">
-          <span v-if="!isAnsweringForPartner">{{ currentQuestion.question }}</span>
+          <span v-if="!isAnsweringForPartner">{{ currentQuestion?.question }}</span>
           <span v-else>你觉得TA会选择什么？</span>
         </div>
 
         <div class="options-list">
           <div
-            v-for="option in currentQuestion.options"
+            v-for="option in currentQuestion?.options"
             :key="option"
             class="option-item"
             :class="{ selected: currentAnswer === option }"

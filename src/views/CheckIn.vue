@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
 import { checkInApi } from '@/utils/supabase'
 import { useUserStore } from '@/stores/user'
 import { showToast } from 'vant'
 import type { CheckIn } from '@/types'
 
-const router = useRouter()
 const userStore = useUserStore()
 const todayCheckIns = ref<CheckIn[]>([])
 const checkInStreak = ref(0)

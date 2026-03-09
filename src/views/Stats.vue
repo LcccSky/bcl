@@ -137,7 +137,7 @@ function goToQuiz() {
 const showDatePicker = ref(false)
 
 function onDateConfirm(date: Date) {
-  const dateStr = date.toISOString().split('T')[0]
+  const dateStr = date.toISOString().split('T')[0] || ''
   newAnniversary.value.date = dateStr
   showDatePicker.value = false
 }
