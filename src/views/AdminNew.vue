@@ -121,6 +121,7 @@ function goBack() {
             :max-count="1"
             :after-read="handleImageUpload"
             :loading="uploading"
+            accept="image/*"
           >
             <van-button icon="photo" type="primary" plain>选择图片</van-button>
           </van-uploader>
