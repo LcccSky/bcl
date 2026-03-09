@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { usePetStore } from '@/stores/pet'
+import { useUserStore } from '@/stores/user'
 import { petApi } from '@/utils/supabase'
 import { showToast, showDialog } from 'vant'
 
 const petStore = usePetStore()
+const userStore = useUserStore()
 const showPetDialog = ref(false)
 const petName = ref('')
 const feeding = ref(false)
@@ -39,6 +41,11 @@ onMounted(async () => {
 })
 
 async function loadPet() {
+  // 如果用户还没有设置昵称，不加载宠物
+  if (!userStore.nickname) {
+    return
+  }
+
   try {
     let pet = await petApi.getPet()
 
