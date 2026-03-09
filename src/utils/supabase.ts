@@ -111,6 +111,43 @@ export const messageApi = {
   }
 }
 
+// 评论相关API
+export const replyApi = {
+  // 获取留言的所有评论
+  async getReplies(messageId: string) {
+    const { data, error } = await supabase
+      .from('replies')
+      .select('*')
+      .eq('message_id', messageId)
+      .order('created_at', { ascending: true })
+
+    if (error) throw error
+    return data
+  },
+
+  // 创建评论
+  async createReply(reply: any) {
+    const { data, error } = await supabase
+      .from('replies')
+      .insert(reply)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // 删除评论
+  async deleteReply(id: string) {
+    const { error } = await supabase
+      .from('replies')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
+  }
+}
+
 // 用户相关API
 export const userApi = {
   async getCurrentUser() {

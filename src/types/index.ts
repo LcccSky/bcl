@@ -26,6 +26,7 @@ export interface Reply {
   id: string
   message_id: string
   user_id: string
+  author_name?: string
   content: string
   created_at: string
 }
