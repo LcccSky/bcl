@@ -1,6 +1,7 @@
 export interface Message {
   id: string
   author_id: string
+  author_name?: string
   content: string
   image_url?: string
   mood_tag: 'miss' | 'cheer' | 'goodnight' | 'surprise'

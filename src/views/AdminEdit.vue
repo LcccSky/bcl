@@ -1,20 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { messageApi } from '@/utils/supabase'
 import { MOOD_TAGS } from '@/types'
 import { showToast } from 'vant'
 import type { UploaderFileListItem } from 'vant'
-import { useUserStore } from '@/stores/user'
 
+const route = useRoute()
 const router = useRouter()
-const userStore = useUserStore()
 const content = ref('')
 const imageUrl = ref('')
 const imageFiles = ref<UploaderFileListItem[]>([])
 const moodTag = ref<'miss' | 'cheer' | 'goodnight' | 'surprise'>('miss')
-const publishType = ref('now')
-const publishTime = ref('')
 const loading = ref(false)
 const uploading = ref(false)
 
@@ -23,6 +20,26 @@ const moodOptions = Object.entries(MOOD_TAGS).map(([key, value]) => ({
   label: `${value.emoji} ${value.label}`,
   color: value.color
 }))
+
+onMounted(async () => {
+  await loadMessage()
+})
+
+async function loadMessage() {
+  loading.value = true
+  try {
+    const id = route.params.id as string
+    const data = await messageApi.getMessage(id)
+    content.value = data.content
+    imageUrl.value = data.image_url || ''
+    moodTag.value = data.mood_tag
+  } catch (error) {
+    console.error('加载留言失败:', error)
+    showToast('加载失败')
+  } finally {
+    loading.value = false
+  }
+}
 
 async function handleImageUpload(item: UploaderFileListItem | UploaderFileListItem[]) {
   const fileItem = Array.isArray(item) ? item[0] : item
@@ -36,7 +53,6 @@ async function handleImageUpload(item: UploaderFileListItem | UploaderFileListIt
   } catch (error) {
     console.error('图片上传失败:', error)
     showToast('图片上传失败，请重试')
-    // 移除上传失败的文件
     imageFiles.value = []
   } finally {
     uploading.value = false
@@ -51,23 +67,19 @@ async function handleSubmit() {
 
   loading.value = true
   try {
-    const messageData = {
+    const id = route.params.id as string
+    const updates = {
       content: content.value,
       image_url: imageUrl.value || null,
-      mood_tag: moodTag.value,
-      author_name: userStore.nickname,
-      publish_at: publishType.value === 'now' ? new Date().toISOString() : publishTime.value,
-      is_published: publishType.value === 'now',
-      is_read: false,
-      likes_count: 0
+      mood_tag: moodTag.value
     }
 
-    await messageApi.createMessage(messageData)
-    showToast('发布成功')
+    await messageApi.updateMessage(id, updates)
+    showToast('更新成功')
     router.back()
   } catch (error) {
-    console.error('发布失败:', error)
-    showToast('发布失败')
+    console.error('更新失败:', error)
+    showToast('更新失败')
   } finally {
     loading.value = false
   }
@@ -79,9 +91,9 @@ function goBack() {
 </script>
 
 <template>
-  <div class="admin-new">
+  <div class="admin-edit">
     <van-nav-bar
-      title="发布新留言"
+      title="编辑留言"
       left-arrow
       @click-left="goBack"
     />
@@ -136,21 +148,6 @@ function goBack() {
           </div>
         </div>
 
-        <div class="section">
-          <div class="section-title">发布时间</div>
-          <van-radio-group v-model="publishType">
-            <van-radio name="now">立即发布</van-radio>
-            <van-radio name="schedule">定时发布</van-radio>
-          </van-radio-group>
-
-          <van-field
-            v-if="publishType === 'schedule'"
-            v-model="publishTime"
-            type="datetime-local"
-            placeholder="选择发布时间"
-          />
-        </div>
-
         <div class="submit-section">
           <van-button
             round
@@ -160,7 +157,7 @@ function goBack() {
             :loading="loading"
             size="large"
           >
-            {{ publishType === 'now' ? '立即发布' : '定时发布' }}
+            保存修改
           </van-button>
         </div>
       </van-form>
@@ -169,7 +166,7 @@ function goBack() {
 </template>
 
 <style scoped>
-.admin-new {
+.admin-edit {
   min-height: 100vh;
   background: var(--bg-color);
 }

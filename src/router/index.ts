@@ -38,6 +38,12 @@ const router = createRouter({
       meta: { title: '发布留言', requiresAuth: true }
     },
     {
+      path: '/admin/edit/:id',
+      name: 'admin-edit',
+      component: () => import('@/views/AdminEdit.vue'),
+      meta: { title: '编辑留言' }
+    },
+    {
       path: '/login',
       name: 'login',
       component: () => import('@/views/Login.vue'),

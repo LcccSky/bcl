@@ -1,16 +1,22 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { messageApi } from '@/utils/supabase'
+import { useUserStore } from '@/stores/user'
 import { MOOD_TAGS } from '@/types'
 import { formatDateTime } from '@/utils/date'
 import type { Message } from '@/types'
-import { showToast } from 'vant'
+import { showToast, showConfirmDialog } from 'vant'
 
 const route = useRoute()
 const router = useRouter()
+const userStore = useUserStore()
 const message = ref<Message | null>(null)
 const loading = ref(false)
+
+const isMyMessage = computed(() => {
+  return message.value?.author_name === userStore.nickname
+})
 
 onMounted(async () => {
   await loadMessage()
@@ -60,6 +66,30 @@ function getMoodInfo(tag: string) {
 function goBack() {
   router.back()
 }
+
+function goToEdit() {
+  if (!message.value) return
+  router.push(`/admin/edit/${message.value.id}`)
+}
+
+async function handleDelete() {
+  if (!message.value) return
+
+  try {
+    await showConfirmDialog({
+      title: '确认删除',
+      message: '确定要删除这条留言吗？'
+    })
+    await messageApi.deleteMessage(message.value.id)
+    showToast('删除成功')
+    router.push('/messages')
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除失败:', error)
+      showToast('删除失败')
+    }
+  }
+}
 </script>
 
 <template>
@@ -87,6 +117,7 @@ function goBack() {
 
       <div class="message-meta">
         <span class="time">{{ formatDateTime(message.publish_at) }}</span>
+        <span v-if="message.author_name" class="author">· {{ message.author_name }}</span>
       </div>
 
       <div class="actions">
@@ -99,6 +130,29 @@ function goBack() {
         >
           ❤️ 点个爱心 ({{ message.likes_count }})
         </van-button>
+
+        <div v-if="isMyMessage" class="my-actions">
+          <van-button
+            type="primary"
+            plain
+            round
+            block
+            size="large"
+            @click="goToEdit"
+          >
+            编辑留言
+          </van-button>
+          <van-button
+            type="danger"
+            plain
+            round
+            block
+            size="large"
+            @click="handleDelete"
+          >
+            删除留言
+          </van-button>
+        </div>
       </div>
     </div>
   </div>
@@ -167,6 +221,11 @@ function goBack() {
   margin-bottom: 24px;
 }
 
+.author {
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
 .actions {
   margin-top: 32px;
 }
@@ -176,5 +235,12 @@ function goBack() {
   height: 50px;
   background: linear-gradient(135deg, #ff6b9d 0%, #ff8fab 100%);
   border: none;
+}
+
+.my-actions {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 </style>

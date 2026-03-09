@@ -3,12 +3,15 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { messageApi } from '@/utils/supabase'
 import { useMessageStore } from '@/stores/message'
+import { useUserStore } from '@/stores/user'
 import { MOOD_TAGS } from '@/types'
 import { formatDate } from '@/utils/date'
 import type { Message } from '@/types'
+import { showConfirmDialog, showToast } from 'vant'
 
 const router = useRouter()
 const messageStore = useMessageStore()
+const userStore = useUserStore()
 const messages = ref<Message[]>([])
 const loading = ref(false)
 
@@ -43,6 +46,33 @@ function goToAdmin() {
 
 function getMoodInfo(tag: string) {
   return MOOD_TAGS[tag as keyof typeof MOOD_TAGS] || MOOD_TAGS.miss
+}
+
+function isMyMessage(message: Message) {
+  return message.author_name === userStore.nickname
+}
+
+function goToEdit(id: string, event: Event) {
+  event.stopPropagation()
+  router.push(`/admin/edit/${id}`)
+}
+
+async function deleteMessage(id: string, event: Event) {
+  event.stopPropagation()
+  try {
+    await showConfirmDialog({
+      title: '确认删除',
+      message: '确定要删除这条留言吗？'
+    })
+    await messageApi.deleteMessage(id)
+    showToast('删除成功')
+    await loadMessages()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除失败:', error)
+      showToast('删除失败')
+    }
+  }
 }
 </script>
 
@@ -81,8 +111,17 @@ function getMoodInfo(tag: string) {
             </div>
 
             <div class="card-footer">
-              <span class="time">{{ formatDate(message.publish_at) }}</span>
-              <span class="likes">❤️ {{ message.likes_count }}</span>
+              <div class="footer-left">
+                <span class="time">{{ formatDate(message.publish_at) }}</span>
+                <span v-if="message.author_name" class="author">· {{ message.author_name }}</span>
+              </div>
+              <div class="footer-right">
+                <span class="likes">❤️ {{ message.likes_count }}</span>
+                <template v-if="isMyMessage(message)">
+                  <van-button size="mini" type="primary" plain @click="goToEdit(message.id, $event)">编辑</van-button>
+                  <van-button size="mini" type="danger" plain @click="deleteMessage(message.id, $event)">删除</van-button>
+                </template>
+              </div>
             </div>
           </div>
         </div>
@@ -202,6 +241,24 @@ function getMoodInfo(tag: string) {
   align-items: center;
   font-size: 14px;
   color: var(--text-secondary);
+  gap: 8px;
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.footer-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.author {
+  color: var(--primary-color);
+  font-weight: 500;
 }
 
 .likes {
