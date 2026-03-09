@@ -157,6 +157,7 @@ async function deleteMessage(id: string, event: Event) {
               </div>
               <div class="footer-right">
                 <span class="likes">❤️ {{ message.likes_count }}</span>
+                <span class="comments">💬 {{ message.replies_count || 0 }}</span>
                 <template v-if="isMyMessage(message)">
                   <van-button size="mini" type="primary" plain @click="goToEdit(message.id, $event)">编辑</van-button>
                   <van-button size="mini" type="danger" plain @click="deleteMessage(message.id, $event)">删除</van-button>
@@ -199,12 +200,13 @@ async function deleteMessage(id: string, event: Event) {
 }
 
 .header {
-  background: white;
-  padding: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 16px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: var(--shadow);
+  box-shadow: 0 2px 12px rgba(255, 107, 157, 0.08);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -222,18 +224,19 @@ async function deleteMessage(id: string, event: Event) {
 }
 
 .date-filter-bar {
-  background: #fff3f8;
-  padding: 12px 16px;
+  background: linear-gradient(135deg, #fff3f8 0%, #ffe8f0 100%);
+  padding: 12px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 14px;
   color: var(--primary-color);
-  border-bottom: 1px solid #ffe0ed;
+  border-bottom: 1px solid rgba(255, 107, 157, 0.1);
+  box-shadow: 0 2px 8px rgba(255, 107, 157, 0.05);
 }
 
 .messages-container {
-  padding: 16px;
+  padding: 20px 16px;
 }
 
 .message-cards {
@@ -245,52 +248,62 @@ async function deleteMessage(id: string, event: Event) {
 .message-card {
   background: white;
   border-radius: 16px;
-  padding: 16px;
-  box-shadow: var(--shadow);
+  padding: 20px;
+  box-shadow: 0 4px 16px rgba(255, 107, 157, 0.08);
   transition: all 0.3s ease;
   cursor: pointer;
+  border: 1px solid rgba(255, 107, 157, 0.05);
   animation: fadeIn 0.5s ease;
 }
 
 .message-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 107, 157, 0.15);
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .mood-tag {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: rgba(255, 107, 157, 0.08);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .new-badge {
-  background: var(--primary-color);
+  background: linear-gradient(135deg, #ff6b9d 0%, #ff8fab 100%);
   color: white;
-  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
   border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(255, 107, 157, 0.3);
 }
 
 .card-content {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .message-text {
   font-size: 16px;
-  line-height: 1.6;
-  color: var(--text-primary);
+  line-height: 1.7;
+  color: #333;
   margin-bottom: 12px;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  word-break: break-word;
 }
 
 .message-image {
@@ -298,35 +311,54 @@ async function deleteMessage(id: string, event: Event) {
   border-radius: 12px;
   object-fit: cover;
   max-height: 200px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 14px;
-  color: var(--text-secondary);
-  gap: 8px;
+  font-size: 13px;
+  color: #999;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 107, 157, 0.08);
+  gap: 12px;
 }
 
 .footer-left {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.footer-left .time {
+  color: #999;
 }
 
 .footer-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 .author {
   color: var(--primary-color);
-  font-weight: 500;
+  font-weight: 600;
 }
 
-.likes {
+.likes,
+.comments {
   color: var(--primary-color);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: rgba(255, 107, 157, 0.06);
+  border-radius: 12px;
+  font-size: 13px;
 }
 </style>

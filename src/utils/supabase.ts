@@ -11,13 +11,22 @@ export const messageApi = {
   async getPublishedMessages() {
     const { data, error } = await supabase
       .from('messages')
-      .select('*')
+      .select(`
+        *,
+        replies:replies(count)
+      `)
       .eq('is_published', true)
       .lte('publish_at', new Date().toISOString())
       .order('publish_at', { ascending: false })
 
     if (error) throw error
-    return data
+
+    // 处理评论数量
+    return data.map((msg: any) => ({
+      ...msg,
+      replies_count: msg.replies?.[0]?.count || 0,
+      replies: undefined
+    }))
   },
 
   // 获取单条消息

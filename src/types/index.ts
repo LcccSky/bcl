@@ -10,6 +10,7 @@ export interface Message {
   is_read: boolean
   read_at?: string
   likes_count: number
+  replies_count?: number
   created_at: string
   updated_at: string
 }
