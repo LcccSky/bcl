@@ -84,6 +84,12 @@ const router = createRouter({
       name: 'quiz',
       component: () => import('@/views/QuizGame.vue'),
       meta: { title: '情侣问答' }
+    },
+    {
+      path: '/chat',
+      name: 'chat',
+      component: () => import('@/views/Chat.vue'),
+      meta: { title: '聊天' }
     }
   ]
 })

@@ -128,3 +128,13 @@ export interface TimeCapsule {
   created_at: string
   updated_at: string
 }
+
+export interface ChatMessage {
+  id: string
+  user_id: string
+  user_name: string
+  content: string
+  message_type: 'text' | 'image' | 'emoji'
+  image_url?: string
+  created_at: string
+}

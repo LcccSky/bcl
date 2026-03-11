@@ -660,3 +660,74 @@ export const timeCapsuleApi = {
     return data
   }
 }
+
+// 聊天消息API
+export const chatApi = {
+  // 获取聊天消息（分页）
+  async getMessages(limit = 50, offset = 0) {
+    const { data, error } = await supabase
+      .from('chat_messages')
+      .select('*')
+      .order('created_at', { ascending: true })
+      .range(offset, offset + limit - 1)
+
+    if (error) throw error
+    return data
+  },
+
+  // 发送消息
+  async sendMessage(messageData: {
+    user_id: string
+    user_name: string
+    content: string
+    message_type?: 'text' | 'image' | 'emoji'
+    image_url?: string
+  }) {
+    const { data, error } = await supabase
+      .from('chat_messages')
+      .insert({
+        ...messageData,
+        message_type: messageData.message_type || 'text'
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // 删除消息
+  async deleteMessage(messageId: string) {
+    const { error } = await supabase
+      .from('chat_messages')
+      .delete()
+      .eq('id', messageId)
+
+    if (error) throw error
+  },
+
+  // 订阅新消息（Realtime）
+  subscribeToMessages(callback: (message: any) => void) {
+    const channel = supabase
+      .channel('chat_messages')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chat_messages'
+        },
+        (payload) => {
+          callback(payload.new)
+        }
+      )
+      .subscribe()
+
+    return channel
+  },
+
+  // 取消订阅
+  unsubscribe(channel: any) {
+    supabase.removeChannel(channel)
+  }
+}
