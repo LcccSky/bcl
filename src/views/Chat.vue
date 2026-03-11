@@ -35,6 +35,15 @@
         </template>
       </van-field>
     </div>
+
+    <!-- 底部导航栏 -->
+    <van-tabbar route>
+      <van-tabbar-item to="/messages" icon="chat-o">留言</van-tabbar-item>
+      <van-tabbar-item to="/chat" icon="comment-o">聊天</van-tabbar-item>
+      <van-tabbar-item to="/pet" icon="smile-o">猫猫</van-tabbar-item>
+      <van-tabbar-item to="/wish" icon="star-o">愿望</van-tabbar-item>
+      <van-tabbar-item to="/stats" icon="bar-chart-o">故事</van-tabbar-item>
+    </van-tabbar>
   </div>
 </template>
 
@@ -143,7 +152,7 @@ onUnmounted(() => {
   flex: 1;
   overflow-y: auto;
   padding: 16px;
-  padding-bottom: 80px;
+  padding-bottom: 130px;
 }
 
 .message-item {
@@ -223,7 +232,7 @@ onUnmounted(() => {
 
 .chat-input-wrapper {
   position: fixed;
-  bottom: 0;
+  bottom: 50px;
   left: 0;
   right: 0;
   background: white;
