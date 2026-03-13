@@ -51,13 +51,15 @@
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { showToast, showImagePreview } from 'vant'
 import { chatApi } from '@/utils/supabase'
+import { useUserStore } from '@/stores/user'
 import type { ChatMessage } from '@/types'
 
+const userStore = useUserStore()
 const messages = ref<ChatMessage[]>([])
 const inputMessage = ref('')
 const chatContainer = ref<HTMLElement>()
-const currentUserId = ref('user1') // 这里应该从用户状态获取
-const currentUserName = ref('用户1') // 这里应该从用户状态获取
+const currentUserId = ref(userStore.nickname || 'guest')
+const currentUserName = ref(userStore.nickname || '游客')
 let realtimeChannel: any = null
 
 // 加载历史消息
@@ -76,6 +78,11 @@ const loadMessages = async () => {
 // 发送消息
 const sendMessage = async () => {
   if (!inputMessage.value.trim()) return
+
+  if (!userStore.nickname) {
+    showToast('请先设置昵称')
+    return
+  }
 
   try {
     await chatApi.sendMessage({
