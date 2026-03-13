@@ -259,7 +259,16 @@ async function handleLike() {
 }
 
 function getMoodInfo(tag: string) {
-  return MOOD_TAGS[tag as keyof typeof MOOD_TAGS] || MOOD_TAGS.miss
+  // 如果消息有自定义心情信息，使用自定义的
+  if (message.value?.mood_emoji && message.value?.mood_color) {
+    return {
+      label: tag,
+      emoji: message.value.mood_emoji,
+      color: message.value.mood_color
+    }
+  }
+  // 否则使用预设的心情标签
+  return MOOD_TAGS[tag as keyof typeof MOOD_TAGS] || { label: tag, emoji: '💭', color: '#95afc0' }
 }
 
 function goBack() {

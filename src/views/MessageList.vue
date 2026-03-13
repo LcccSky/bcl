@@ -143,8 +143,17 @@ function goToProfile() {
   router.push('/profile')
 }
 
-function getMoodInfo(tag: string) {
-  return MOOD_TAGS[tag as keyof typeof MOOD_TAGS] || MOOD_TAGS.miss
+function getMoodInfo(tag: string, message?: Message) {
+  // 如果消息有自定义心情信息，使用自定义的
+  if (message?.mood_emoji && message?.mood_color) {
+    return {
+      label: tag,
+      emoji: message.mood_emoji,
+      color: message.mood_color
+    }
+  }
+  // 否则使用预设的心情标签
+  return MOOD_TAGS[tag as keyof typeof MOOD_TAGS] || { label: tag, emoji: '💭', color: '#95afc0' }
 }
 
 function isMyMessage(message: Message) {
@@ -227,8 +236,8 @@ async function deleteMessage(id: string, event: Event) {
           >
             <div class="card-header">
               <div class="header-left">
-                <span class="mood-tag" :style="{ color: getMoodInfo(message.mood_tag).color }">
-                  {{ getMoodInfo(message.mood_tag).emoji }} {{ getMoodInfo(message.mood_tag).label }}
+                <span class="mood-tag" :style="{ color: getMoodInfo(message.mood_tag, message).color }">
+                  {{ getMoodInfo(message.mood_tag, message).emoji }} {{ getMoodInfo(message.mood_tag, message).label }}
                 </span>
               </div>
               <div class="header-right">

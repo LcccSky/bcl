@@ -14,7 +14,11 @@ const petStore = usePetStore()
 const content = ref('')
 const imageUrl = ref('')
 const imageFiles = ref<UploaderFileListItem[]>([])
-const moodTag = ref<'miss' | 'cheer' | 'goodnight' | 'surprise'>('miss')
+const moodTag = ref('miss')
+const customMoodLabel = ref('')
+const customMoodEmoji = ref('')
+const customMoodColor = ref('#ff6b9d')
+const showCustomMood = ref(false)
 const publishType = ref('now')
 const publishTime = ref('')
 const loading = ref(false)
@@ -51,12 +55,26 @@ async function handleSubmit() {
     return
   }
 
+  // 如果是自定义心情，验证必填项
+  if (moodTag.value === 'custom') {
+    if (!customMoodLabel.value.trim()) {
+      showToast('请输入自定义心情标签')
+      return
+    }
+    if (!customMoodEmoji.value.trim()) {
+      showToast('请输入心情表情')
+      return
+    }
+  }
+
   loading.value = true
   try {
     const messageData = {
       content: content.value,
       image_url: imageUrl.value || null,
-      mood_tag: moodTag.value,
+      mood_tag: moodTag.value === 'custom' ? customMoodLabel.value : moodTag.value,
+      mood_emoji: moodTag.value === 'custom' ? customMoodEmoji.value : MOOD_TAGS[moodTag.value as keyof typeof MOOD_TAGS]?.emoji,
+      mood_color: moodTag.value === 'custom' ? customMoodColor.value : MOOD_TAGS[moodTag.value as keyof typeof MOOD_TAGS]?.color,
       author_name: userStore.nickname,
       publish_at: publishType.value === 'now' ? new Date().toISOString() : publishTime.value,
       is_published: publishType.value === 'now',
@@ -109,10 +127,47 @@ function goBack() {
               class="mood-option"
               :class="{ active: moodTag === mood.value }"
               :style="{ borderColor: moodTag === mood.value ? mood.color : '#e9ecef' }"
-              @click="moodTag = mood.value as any"
+              @click="moodTag = mood.value; showCustomMood = false"
             >
               {{ mood.label }}
             </div>
+            <div
+              class="mood-option custom-mood-btn"
+              :class="{ active: moodTag === 'custom' }"
+              @click="moodTag = 'custom'; showCustomMood = true"
+            >
+              ✨ 自定义
+            </div>
+          </div>
+
+          <!-- 自定义心情输入 -->
+          <div v-if="showCustomMood && moodTag === 'custom'" class="custom-mood-form">
+            <van-field
+              v-model="customMoodEmoji"
+              label="表情"
+              placeholder="输入表情符号，如 😊"
+              maxlength="2"
+            />
+            <van-field
+              v-model="customMoodLabel"
+              label="标签"
+              placeholder="输入心情标签，如 开心"
+              maxlength="10"
+            />
+            <van-field
+              v-model="customMoodColor"
+              label="颜色"
+              type="text"
+              placeholder="#ff6b9d"
+            >
+              <template #input>
+                <input
+                  v-model="customMoodColor"
+                  type="color"
+                  style="width: 100%; height: 40px; border: none;"
+                />
+              </template>
+            </van-field>
           </div>
         </div>
 
@@ -223,6 +278,23 @@ function goBack() {
 .mood-option.active {
   background: #ffeef8;
   font-weight: 600;
+}
+
+.custom-mood-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: transparent;
+}
+
+.custom-mood-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  opacity: 0.9;
+}
+
+.custom-mood-form {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e9ecef;
 }
 
 .submit-section {

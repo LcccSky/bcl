@@ -5,7 +5,9 @@ export interface Message {
   avatar_url?: string
   content: string
   image_url?: string
-  mood_tag: 'miss' | 'cheer' | 'goodnight' | 'surprise'
+  mood_tag: string
+  mood_emoji?: string
+  mood_color?: string
   publish_at: string
   is_published: boolean
   is_read: boolean
@@ -46,8 +48,14 @@ export interface Settings {
 
 export const MOOD_TAGS = {
   miss: { label: '想你', emoji: '💕', color: '#ff6b9d' },
-  cheer: { label: '加油', emoji: '🌟', color: '#ffd93d' },
+  love: { label: '爱你', emoji: '❤️', color: '#ff4757' },
+  happy: { label: '开心', emoji: '😊', color: '#ffd93d' },
+  excited: { label: '兴奋', emoji: '🎉', color: '#ff6348' },
+  cheer: { label: '加油', emoji: '🌟', color: '#ffa502' },
+  grateful: { label: '感恩', emoji: '🙏', color: '#ff6b81' },
   goodnight: { label: '晚安', emoji: '🌙', color: '#a8dadc' },
+  thinking: { label: '想念', emoji: '💭', color: '#95afc0' },
+  sad: { label: '难过', emoji: '😢', color: '#74b9ff' },
   surprise: { label: '惊喜', emoji: '🎁', color: '#f4a261' }
 } as const
 

@@ -125,7 +125,11 @@ async function saveProfile() {
   }
 }
 
-async function handleAvatarUpload(file: UploaderFileListItem) {
+async function handleAvatarUpload(file: UploaderFileListItem | UploaderFileListItem[]) {
+  const fileItem = Array.isArray(file) ? file[0] : file
+
+  if (!fileItem || !fileItem.file) return
+
   if (!userStore.nickname) {
     showToast('请先设置昵称')
     return
@@ -135,7 +139,7 @@ async function handleAvatarUpload(file: UploaderFileListItem) {
 
   uploading.value = true
   try {
-    const uploadFile = file.file as File
+    const uploadFile = fileItem.file as File
     const publicUrl = await userApi.uploadAvatar(uploadFile, userStore.nickname)
 
     avatarUrl.value = publicUrl
