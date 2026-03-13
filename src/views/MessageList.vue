@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { messageApi, missYouApi, notificationApi } from '@/utils/supabase'
+import { messageApi, missYouApi, notificationApi, userApi } from '@/utils/supabase'
 import { useMessageStore } from '@/stores/message'
 import { useUserStore } from '@/stores/user'
 import { MOOD_TAGS } from '@/types'
@@ -44,9 +44,26 @@ async function loadMessages() {
   loading.value = true
   try {
     const data = await messageApi.getPublishedMessages()
-    messages.value = data
-    allMessages.value = data
-    messageStore.setMessages(data)
+
+    // 为每条留言加载作者头像
+    if (data) {
+      const messagesWithAvatars = await Promise.all(
+        data.map(async (msg) => {
+          if (msg.author_name) {
+            try {
+              const user = await userApi.getUser(msg.author_name)
+              return { ...msg, avatar_url: user?.avatar_url }
+            } catch {
+              return msg
+            }
+          }
+          return msg
+        })
+      )
+      messages.value = messagesWithAvatars
+      allMessages.value = messagesWithAvatars
+      messageStore.setMessages(messagesWithAvatars)
+    }
   } catch (error) {
     console.error('加载留言失败:', error)
   } finally {
@@ -122,6 +139,10 @@ function goToNotifications() {
   router.push('/notifications')
 }
 
+function goToProfile() {
+  router.push('/profile')
+}
+
 function getMoodInfo(tag: string) {
   return MOOD_TAGS[tag as keyof typeof MOOD_TAGS] || MOOD_TAGS.miss
 }
@@ -159,6 +180,9 @@ async function deleteMessage(id: string, event: Event) {
     <div class="header">
       <h1>❤️ 留一口</h1>
       <div class="header-actions">
+        <van-button plain type="primary" size="small" icon="user-o" @click="goToProfile">
+          我的
+        </van-button>
         <van-badge :content="unreadNotifications > 0 ? unreadNotifications : ''" max="99">
           <van-button plain type="primary" size="small" icon="bell-o" @click="goToNotifications">
             通知
@@ -213,7 +237,13 @@ async function deleteMessage(id: string, event: Event) {
             </div>
 
             <div class="card-meta">
-              <span class="meta-author">{{ message.author_name || '匿名' }}</span>
+              <div class="author-info">
+                <div class="author-avatar">
+                  <img v-if="message.avatar_url" :src="message.avatar_url" class="avatar-img" />
+                  <span v-else>{{ (message.author_name || '匿名').charAt(0) }}</span>
+                </div>
+                <span class="meta-author">{{ message.author_name || '匿名' }}</span>
+              </div>
               <span class="meta-date">{{ formatDate(message.publish_at) }}</span>
             </div>
 
@@ -413,6 +443,33 @@ async function deleteMessage(id: string, event: Event) {
   margin-bottom: 12px;
   padding-bottom: 12px;
   border-bottom: 1px solid rgba(255, 107, 157, 0.08);
+}
+
+.author-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.author-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .meta-author {

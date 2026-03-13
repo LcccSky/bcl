@@ -2,6 +2,7 @@ export interface Message {
   id: string
   author_id: string
   author_name?: string
+  avatar_url?: string
   content: string
   image_url?: string
   mood_tag: 'miss' | 'cheer' | 'goodnight' | 'surprise'
@@ -17,10 +18,10 @@ export interface Message {
 
 export interface User {
   id: string
-  username: string
-  role: 'admin' | 'viewer'
+  nickname: string
   avatar_url?: string
   created_at: string
+  updated_at: string
 }
 
 export interface Reply {
@@ -28,6 +29,7 @@ export interface Reply {
   message_id: string
   user_id: string
   author_name?: string
+  avatar_url?: string
   content: string
   created_at: string
 }
@@ -133,6 +135,7 @@ export interface ChatMessage {
   id: string
   user_id: string
   user_name: string
+  avatar_url?: string
   content: string
   message_type: 'text' | 'image' | 'emoji'
   image_url?: string

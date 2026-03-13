@@ -109,6 +109,7 @@ CREATE TABLE IF NOT EXISTS chat_messages (
   content TEXT NOT NULL,
   message_type TEXT DEFAULT 'text' CHECK (message_type IN ('text', 'image', 'emoji')),
   image_url TEXT,
+  avatar_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -142,3 +143,20 @@ ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view their own notifications" ON notifications FOR SELECT USING (true);
 CREATE POLICY "Anyone can create notifications" ON notifications FOR INSERT WITH CHECK (true);
 CREATE POLICY "Users can update their own notifications" ON notifications FOR UPDATE USING (true);
+
+-- 用户表
+CREATE TABLE IF NOT EXISTS users (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  nickname TEXT UNIQUE NOT NULL,
+  avatar_url TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_nickname ON users(nickname);
+
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can view users" ON users FOR SELECT USING (true);
+CREATE POLICY "Anyone can create users" ON users FOR INSERT WITH CHECK (true);
+CREATE POLICY "Anyone can update users" ON users FOR UPDATE USING (true);

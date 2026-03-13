@@ -96,6 +96,12 @@ const router = createRouter({
       name: 'notifications',
       component: () => import('@/views/Notifications.vue'),
       meta: { title: '通知' }
+    },
+    {
+      path: '/profile',
+      name: 'profile',
+      component: () => import('@/views/Profile.vue'),
+      meta: { title: '个人资料' }
     }
   ]
 })

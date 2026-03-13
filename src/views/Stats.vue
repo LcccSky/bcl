@@ -300,6 +300,7 @@ function onDateConfirm(date: Date) {
     <!-- 底部导航栏 -->
     <van-tabbar route>
       <van-tabbar-item to="/messages" icon="chat-o">留言</van-tabbar-item>
+      <van-tabbar-item to="/chat" icon="comment-o">聊天</van-tabbar-item>
       <van-tabbar-item to="/pet" icon="smile-o">猫猫</van-tabbar-item>
       <van-tabbar-item to="/wish" icon="star-o">愿望</van-tabbar-item>
       <van-tabbar-item to="/stats" icon="bar-chart-o">故事</van-tabbar-item>

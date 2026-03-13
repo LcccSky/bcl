@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { messageApi, replyApi, petApi, notificationApi } from '@/utils/supabase'
+import { messageApi, replyApi, petApi, notificationApi, userApi } from '@/utils/supabase'
 import { useUserStore } from '@/stores/user'
 import { usePetStore } from '@/stores/pet'
 import { MOOD_TAGS } from '@/types'
@@ -51,6 +51,18 @@ async function loadMessage() {
     const data = await messageApi.getMessage(id)
     message.value = data
 
+    // 加载作者头像
+    if (data.author_name) {
+      try {
+        const user = await userApi.getUser(data.author_name)
+        if (user && message.value) {
+          message.value.avatar_url = user.avatar_url
+        }
+      } catch {
+        // 忽略错误
+      }
+    }
+
     // 标记为已读
     if (!data.is_read) {
       await messageApi.markAsRead(id)
@@ -70,7 +82,24 @@ async function loadReplies() {
   try {
     const id = route.params.id as string
     const data = await replyApi.getReplies(id)
-    replies.value = data
+
+    // 为每条评论加载作者头像
+    if (data) {
+      const repliesWithAvatars = await Promise.all(
+        data.map(async (reply) => {
+          if (reply.author_name) {
+            try {
+              const user = await userApi.getUser(reply.author_name)
+              return { ...reply, avatar_url: user?.avatar_url }
+            } catch {
+              return reply
+            }
+          }
+          return reply
+        })
+      )
+      replies.value = repliesWithAvatars
+    }
   } catch (error) {
     console.error('加载评论失败:', error)
   }
@@ -342,7 +371,13 @@ async function handleDelete() {
               class="comment-item"
             >
               <div class="comment-header">
-                <span class="comment-author">{{ reply.author_name || '匿名' }}</span>
+                <div class="comment-author-info">
+                  <div class="comment-avatar">
+                    <img v-if="reply.avatar_url" :src="reply.avatar_url" class="avatar-img" />
+                    <span v-else>{{ (reply.author_name || '匿名').charAt(0) }}</span>
+                  </div>
+                  <span class="comment-author">{{ reply.author_name || '匿名' }}</span>
+                </div>
                 <span class="comment-time">{{ formatDateTime(reply.created_at) }}</span>
               </div>
               <div class="comment-content" v-html="formatReplyContent(reply.content)"></div>
@@ -519,6 +554,33 @@ async function handleDelete() {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
+}
+
+.comment-author-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.comment-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.comment-avatar .avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .comment-author {

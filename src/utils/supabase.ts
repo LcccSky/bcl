@@ -157,8 +157,8 @@ export const replyApi = {
   }
 }
 
-// 用户相关API
-export const userApi = {
+// 用户认证API
+export const authApi = {
   async getCurrentUser() {
     const { data: { user } } = await supabase.auth.getUser()
     return user
@@ -682,6 +682,7 @@ export const chatApi = {
     content: string
     message_type?: 'text' | 'image' | 'emoji'
     image_url?: string
+    avatar_url?: string
   }) {
     const { data, error } = await supabase
       .from('chat_messages')
@@ -808,5 +809,54 @@ export const notificationApi = {
       .eq('id', notificationId)
 
     if (error) throw error
+  }
+}
+
+// 用户API
+export const userApi = {
+  // 获取用户信息
+  async getUser(nickname: string) {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('nickname', nickname)
+      .single()
+
+    if (error && error.code !== 'PGRST116') throw error
+    return data
+  },
+
+  // 创建或更新用户
+  async upsertUser(userData: { nickname: string; avatar_url?: string }) {
+    const { data, error } = await supabase
+      .from('users')
+      .upsert(userData, { onConflict: 'nickname' })
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // 上传头像
+  async uploadAvatar(file: File, nickname: string): Promise<string> {
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${nickname}-${Date.now()}.${fileExt}`
+    const filePath = `avatars/${fileName}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('images')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true
+      })
+
+    if (uploadError) throw uploadError
+
+    const { data } = supabase.storage
+      .from('images')
+      .getPublicUrl(filePath)
+
+    return data.publicUrl
   }
 }

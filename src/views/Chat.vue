@@ -6,7 +6,8 @@
       <div v-for="msg in messages" :key="msg.id"
            :class="['message-item', msg.user_id === currentUserId ? 'message-right' : 'message-left']">
         <div class="message-avatar">
-          {{ msg.user_name.charAt(0) }}
+          <img v-if="msg.avatar_url" :src="msg.avatar_url" class="avatar-img" />
+          <span v-else>{{ msg.user_name.charAt(0) }}</span>
         </div>
         <div class="message-content">
           <div class="message-name">{{ msg.user_name }}</div>
@@ -50,7 +51,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { showToast, showImagePreview } from 'vant'
-import { chatApi } from '@/utils/supabase'
+import { chatApi, userApi } from '@/utils/supabase'
 import { useUserStore } from '@/stores/user'
 import type { ChatMessage } from '@/types'
 
@@ -66,7 +67,22 @@ let realtimeChannel: any = null
 const loadMessages = async () => {
   try {
     const data = await chatApi.getMessages(100)
-    messages.value = data || []
+
+    // 为每条消息加载用户头像
+    if (data) {
+      const messagesWithAvatars = await Promise.all(
+        data.map(async (msg) => {
+          try {
+            const user = await userApi.getUser(msg.user_id)
+            return { ...msg, avatar_url: user?.avatar_url }
+          } catch {
+            return msg
+          }
+        })
+      )
+      messages.value = messagesWithAvatars
+    }
+
     await nextTick()
     scrollToBottom()
   } catch (error) {
@@ -85,11 +101,21 @@ const sendMessage = async () => {
   }
 
   try {
+    // 获取当前用户头像
+    let avatarUrl = ''
+    try {
+      const user = await userApi.getUser(userStore.nickname)
+      avatarUrl = user?.avatar_url || ''
+    } catch {
+      // 忽略错误
+    }
+
     await chatApi.sendMessage({
       user_id: currentUserId.value,
       user_name: currentUserName.value,
       content: inputMessage.value.trim(),
-      message_type: 'text'
+      message_type: 'text',
+      avatar_url: avatarUrl
     })
     inputMessage.value = ''
   } catch (error) {
@@ -127,7 +153,15 @@ const previewImage = (url?: string) => {
 
 // 订阅实时消息
 const subscribeToMessages = () => {
-  realtimeChannel = chatApi.subscribeToMessages((newMessage: ChatMessage) => {
+  realtimeChannel = chatApi.subscribeToMessages(async (newMessage: ChatMessage) => {
+    // 加载新消息的用户头像
+    try {
+      const user = await userApi.getUser(newMessage.user_id)
+      newMessage.avatar_url = user?.avatar_url
+    } catch {
+      // 忽略错误，使用默认头像
+    }
+
     messages.value.push(newMessage)
     nextTick(() => {
       scrollToBottom()
@@ -187,6 +221,13 @@ onUnmounted(() => {
   justify-content: center;
   font-weight: bold;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .message-content {
