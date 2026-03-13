@@ -125,10 +125,13 @@ async function submitReply() {
     // 检测 @ 提及并创建通知
     const mentionRegex = /@(\S+)/g
     const mentions = replyContent.value.match(mentionRegex)
+    const mentionedUsers = new Set<string>()
+
     if (mentions) {
       for (const mention of mentions) {
         const mentionedUser = mention.substring(1) // 去掉 @
         if (mentionedUser !== userStore.nickname) {
+          mentionedUsers.add(mentionedUser)
           await notificationApi.createNotification({
             user_id: mentionedUser,
             type: 'mention',
@@ -140,15 +143,20 @@ async function submitReply() {
       }
     }
 
-    // 如果不是自己的留言，通知留言作者
-    if (message.value && message.value.author_name && message.value.author_name !== userStore.nickname) {
-      await notificationApi.createNotification({
-        user_id: message.value.author_name,
-        type: 'reply',
-        title: '收到新评论',
-        content: `${userStore.nickname} 评论了你的留言：${replyContent.value}`,
-        related_id: route.params.id as string
-      })
+    // 通知留言作者（如果作者不是自己，且没有在 @ 提及中通知过）
+    if (message.value && message.value.author_name) {
+      const shouldNotifyAuthor = message.value.author_name !== userStore.nickname &&
+                                 !mentionedUsers.has(message.value.author_name)
+
+      if (shouldNotifyAuthor) {
+        await notificationApi.createNotification({
+          user_id: message.value.author_name,
+          type: 'reply',
+          title: '收到新评论',
+          content: `${userStore.nickname} 评论了你的留言：${replyContent.value}`,
+          related_id: route.params.id as string
+        })
+      }
     }
 
     replyContent.value = ''

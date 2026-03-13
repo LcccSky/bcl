@@ -51,7 +51,7 @@
     </div>
 
     <!-- 头像上传弹窗 -->
-    <van-popup v-model:show="showAvatarUpload" position="bottom" :style="{ height: '40%' }">
+    <van-popup v-model:show="showAvatarUpload" position="bottom" :style="{ height: '50%' }">
       <div class="upload-popup">
         <div class="upload-header">上传头像</div>
         <van-uploader
@@ -60,9 +60,32 @@
           :after-read="handleAvatarUpload"
           accept="image/*"
         >
-          <van-button icon="plus" type="primary">选择图片</van-button>
+          <van-button icon="plus" type="primary" :loading="uploading">
+            {{ uploading ? '上传中...' : '选择图片' }}
+          </van-button>
         </van-uploader>
+
+        <!-- 预览已选择的图片 -->
+        <div v-if="tempAvatarUrl" class="avatar-preview">
+          <img :src="tempAvatarUrl" alt="预览" />
+        </div>
+
         <div class="upload-tip">支持 JPG、PNG 格式，建议尺寸 200x200</div>
+
+        <!-- 操作按钮 -->
+        <div class="upload-actions">
+          <van-button block round plain @click="cancelAvatarUpload">取消</van-button>
+          <van-button
+            block
+            round
+            type="primary"
+            :loading="saving"
+            :disabled="!tempAvatarUrl"
+            @click="confirmAvatarUpload"
+          >
+            确认上传
+          </van-button>
+        </div>
       </div>
     </van-popup>
   </div>
@@ -78,6 +101,7 @@ import type { UploaderFileListItem } from 'vant'
 const userStore = useUserStore()
 const nickname = ref(userStore.nickname || '')
 const avatarUrl = ref('')
+const tempAvatarUrl = ref('')
 const editing = ref(false)
 const saving = ref(false)
 const showAvatarUpload = ref(false)
@@ -135,29 +159,53 @@ async function handleAvatarUpload(file: UploaderFileListItem | UploaderFileListI
     return
   }
 
-  if (uploading.value) return
-
   uploading.value = true
   try {
     const uploadFile = fileItem.file as File
     const publicUrl = await userApi.uploadAvatar(uploadFile, userStore.nickname)
 
-    avatarUrl.value = publicUrl
-
-    await userApi.upsertUser({
-      nickname: userStore.nickname,
-      avatar_url: publicUrl
-    })
-
-    showToast('头像上传成功')
-    showAvatarUpload.value = false
-    fileList.value = []
+    // 暂存上传的 URL，等待用户确认
+    tempAvatarUrl.value = publicUrl
+    showToast('图片已选择，请点击确认上传')
   } catch (error) {
     console.error('上传头像失败:', error)
-    showToast('上传失败')
+    showToast('上传失败，请重试')
+    fileList.value = []
   } finally {
     uploading.value = false
   }
+}
+
+async function confirmAvatarUpload() {
+  if (!tempAvatarUrl.value) {
+    showToast('请先选择图片')
+    return
+  }
+
+  saving.value = true
+  try {
+    await userApi.upsertUser({
+      nickname: userStore.nickname!,
+      avatar_url: tempAvatarUrl.value
+    })
+
+    avatarUrl.value = tempAvatarUrl.value
+    showToast('头像上传成功')
+    showAvatarUpload.value = false
+    fileList.value = []
+    tempAvatarUrl.value = ''
+  } catch (error) {
+    console.error('保存头像失败:', error)
+    showToast('保存失败，请重试')
+  } finally {
+    saving.value = false
+  }
+}
+
+function cancelAvatarUpload() {
+  showAvatarUpload.value = false
+  fileList.value = []
+  tempAvatarUrl.value = ''
 }
 </script>
 
@@ -252,5 +300,25 @@ async function handleAvatarUpload(file: UploaderFileListItem | UploaderFileListI
   font-size: 12px;
   color: var(--text-secondary);
   text-align: center;
+}
+
+.avatar-preview {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.avatar-preview img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--primary-color);
+}
+
+.upload-actions {
+  margin-top: 24px;
+  display: flex;
+  gap: 12px;
 }
 </style>

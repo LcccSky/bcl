@@ -16,7 +16,6 @@ const imageUrl = ref('')
 const imageFiles = ref<UploaderFileListItem[]>([])
 const moodTag = ref('miss')
 const customMoodLabel = ref('')
-const customMoodEmoji = ref('')
 const customMoodColor = ref('#ff6b9d')
 const showCustomMood = ref(false)
 const publishType = ref('now')
@@ -61,10 +60,6 @@ async function handleSubmit() {
       showToast('请输入自定义心情标签')
       return
     }
-    if (!customMoodEmoji.value.trim()) {
-      showToast('请输入心情表情')
-      return
-    }
   }
 
   loading.value = true
@@ -73,7 +68,7 @@ async function handleSubmit() {
       content: content.value,
       image_url: imageUrl.value || null,
       mood_tag: moodTag.value === 'custom' ? customMoodLabel.value : moodTag.value,
-      mood_emoji: moodTag.value === 'custom' ? customMoodEmoji.value : MOOD_TAGS[moodTag.value as keyof typeof MOOD_TAGS]?.emoji,
+      mood_emoji: moodTag.value === 'custom' ? '💭' : MOOD_TAGS[moodTag.value as keyof typeof MOOD_TAGS]?.emoji,
       mood_color: moodTag.value === 'custom' ? customMoodColor.value : MOOD_TAGS[moodTag.value as keyof typeof MOOD_TAGS]?.color,
       author_name: userStore.nickname,
       publish_at: publishType.value === 'now' ? new Date().toISOString() : publishTime.value,
@@ -142,12 +137,6 @@ function goBack() {
 
           <!-- 自定义心情输入 -->
           <div v-if="showCustomMood && moodTag === 'custom'" class="custom-mood-form">
-            <van-field
-              v-model="customMoodEmoji"
-              label="表情"
-              placeholder="输入表情符号，如 😊"
-              maxlength="2"
-            />
             <van-field
               v-model="customMoodLabel"
               label="标签"
