@@ -731,3 +731,82 @@ export const chatApi = {
     supabase.removeChannel(channel)
   }
 }
+
+// 通知API
+export const notificationApi = {
+  // 获取用户的通知
+  async getNotifications(userId: string) {
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return data
+  },
+
+  // 获取未读通知数量
+  async getUnreadCount(userId: string) {
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('is_read', false)
+
+    if (error) throw error
+    return data?.length || 0
+  },
+
+  // 创建通知
+  async createNotification(notificationData: {
+    user_id: string
+    type: 'mention' | 'reply' | 'like'
+    title: string
+    content: string
+    related_id?: string
+  }) {
+    const { data, error } = await supabase
+      .from('notifications')
+      .insert(notificationData)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // 标记为已读
+  async markAsRead(notificationId: string) {
+    const { data, error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('id', notificationId)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // 标记所有为已读
+  async markAllAsRead(userId: string) {
+    const { error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('user_id', userId)
+      .eq('is_read', false)
+
+    if (error) throw error
+  },
+
+  // 删除通知
+  async deleteNotification(notificationId: string) {
+    const { error } = await supabase
+      .from('notifications')
+      .delete()
+      .eq('id', notificationId)
+
+    if (error) throw error
+  }
+}

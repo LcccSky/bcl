@@ -120,3 +120,25 @@ ALTER TABLE chat_messages ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Anyone can view chat_messages" ON chat_messages FOR SELECT USING (true);
 CREATE POLICY "Anyone can create chat_messages" ON chat_messages FOR INSERT WITH CHECK (true);
 CREATE POLICY "Anyone can delete their own chat_messages" ON chat_messages FOR DELETE USING (true);
+
+-- 通知表
+CREATE TABLE IF NOT EXISTS notifications (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  type TEXT NOT NULL CHECK (type IN ('mention', 'reply', 'like')),
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  related_id TEXT,
+  is_read BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_is_read ON notifications(is_read);
+CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at);
+
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own notifications" ON notifications FOR SELECT USING (true);
+CREATE POLICY "Anyone can create notifications" ON notifications FOR INSERT WITH CHECK (true);
+CREATE POLICY "Users can update their own notifications" ON notifications FOR UPDATE USING (true);

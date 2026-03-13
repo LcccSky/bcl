@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { messageApi, replyApi, petApi } from '@/utils/supabase'
+import { messageApi, replyApi, petApi, notificationApi } from '@/utils/supabase'
 import { useUserStore } from '@/stores/user'
 import { usePetStore } from '@/stores/pet'
 import { MOOD_TAGS } from '@/types'
@@ -18,6 +18,8 @@ const replies = ref<Reply[]>([])
 const loading = ref(false)
 const replyContent = ref('')
 const submittingReply = ref(false)
+const showMentionList = ref(false)
+const mentionUsers = ['宝贝', '老公'] // 可以从配置或数据库获取
 
 const isMyMessage = computed(() => {
   return message.value?.author_name === userStore.nickname
@@ -76,6 +78,36 @@ async function submitReply() {
     }
 
     await replyApi.createReply(replyData)
+
+    // 检测 @ 提及并创建通知
+    const mentionRegex = /@(\S+)/g
+    const mentions = replyContent.value.match(mentionRegex)
+    if (mentions) {
+      for (const mention of mentions) {
+        const mentionedUser = mention.substring(1) // 去掉 @
+        if (mentionedUser !== userStore.nickname) {
+          await notificationApi.createNotification({
+            user_id: mentionedUser,
+            type: 'mention',
+            title: '有人在评论中提到了你',
+            content: `${userStore.nickname} 在评论中提到了你：${replyContent.value}`,
+            related_id: route.params.id as string
+          })
+        }
+      }
+    }
+
+    // 如果不是自己的留言，通知留言作者
+    if (message.value && message.value.author_name && message.value.author_name !== userStore.nickname) {
+      await notificationApi.createNotification({
+        user_id: message.value.author_name,
+        type: 'reply',
+        title: '收到新评论',
+        content: `${userStore.nickname} 评论了你的留言：${replyContent.value}`,
+        related_id: route.params.id as string
+      })
+    }
+
     replyContent.value = ''
 
     // 发表评论奖励：+3 经验
@@ -94,6 +126,20 @@ async function submitReply() {
     showToast('评论失败')
   } finally {
     submittingReply.value = false
+  }
+}
+
+function insertMention(username: string) {
+  replyContent.value += `@${username} `
+  showMentionList.value = false
+}
+
+function handleInputChange() {
+  const lastChar = replyContent.value.slice(-1)
+  if (lastChar === '@') {
+    showMentionList.value = true
+  } else if (lastChar === ' ' || lastChar === '\n') {
+    showMentionList.value = false
   }
 }
 
@@ -116,6 +162,11 @@ async function deleteReply(replyId: string) {
 
 function isMyReply(reply: Reply) {
   return reply.author_name === userStore.nickname
+}
+
+function formatReplyContent(content: string) {
+  // 将 @用户名 高亮显示
+  return content.replace(/@(\S+)/g, '<span class="mention-highlight">@$1</span>')
 }
 
 async function handleLike() {
@@ -259,7 +310,7 @@ async function handleDelete() {
                 <span class="comment-author">{{ reply.author_name || '匿名' }}</span>
                 <span class="comment-time">{{ formatDateTime(reply.created_at) }}</span>
               </div>
-              <div class="comment-content">{{ reply.content }}</div>
+              <div class="comment-content" v-html="formatReplyContent(reply.content)"></div>
               <div v-if="isMyReply(reply)" class="comment-actions">
                 <van-button size="mini" type="danger" plain @click="deleteReply(reply.id)">
                   删除
@@ -276,8 +327,9 @@ async function handleDelete() {
             autosize
             type="textarea"
             maxlength="200"
-            placeholder="写下你的评论..."
+            placeholder="写下你的评论...（输入 @ 可以提及其他人）"
             show-word-limit
+            @input="handleInputChange"
           />
           <van-button
             type="primary"
@@ -288,6 +340,21 @@ async function handleDelete() {
             发送
           </van-button>
         </div>
+
+        <!-- @ 提及列表 -->
+        <van-popup v-model:show="showMentionList" position="bottom" :style="{ height: '30%' }">
+          <div class="mention-list">
+            <div class="mention-header">选择要提及的人</div>
+            <div
+              v-for="user in mentionUsers"
+              :key="user"
+              class="mention-item"
+              @click="insertMention(user)"
+            >
+              <span class="mention-name">@{{ user }}</span>
+            </div>
+          </div>
+        </van-popup>
       </div>
     </div>
   </div>
@@ -456,5 +523,45 @@ async function handleDelete() {
 
 .comment-input .van-button {
   flex-shrink: 0;
+}
+
+.mention-list {
+  padding: 16px;
+}
+
+.mention-header {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.mention-item {
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mention-item:hover {
+  background: rgba(255, 107, 157, 0.1);
+}
+
+.mention-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--primary-color);
+}
+
+.mention-highlight {
+  color: var(--primary-color);
+  font-weight: 600;
+  background: rgba(255, 107, 157, 0.1);
+  padding: 2px 4px;
+  border-radius: 4px;
 }
 </style>

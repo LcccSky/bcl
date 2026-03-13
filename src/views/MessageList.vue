@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { messageApi, missYouApi } from '@/utils/supabase'
+import { messageApi, missYouApi, notificationApi } from '@/utils/supabase'
 import { useMessageStore } from '@/stores/message'
 import { useUserStore } from '@/stores/user'
 import { MOOD_TAGS } from '@/types'
@@ -19,6 +19,7 @@ const selectedDate = ref<Date | null>(null)
 const showCalendarPicker = ref(false)
 const missYouCount = ref(0)
 const sending = ref(false)
+const unreadNotifications = ref(0)
 
 const filteredMessages = computed(() => {
   if (!selectedDate.value) return messages.value
@@ -36,6 +37,7 @@ const filteredMessages = computed(() => {
 onMounted(async () => {
   await loadMessages()
   await loadMissYouCount()
+  await loadUnreadNotifications()
 })
 
 async function loadMessages() {
@@ -58,6 +60,15 @@ async function loadMissYouCount() {
     missYouCount.value = await missYouApi.getTodayMissYouCount(userStore.nickname)
   } catch (error) {
     console.error('加载想你了次数失败:', error)
+  }
+}
+
+async function loadUnreadNotifications() {
+  if (!userStore.nickname) return
+  try {
+    unreadNotifications.value = await notificationApi.getUnreadCount(userStore.nickname)
+  } catch (error) {
+    console.error('加载未读通知失败:', error)
   }
 }
 
@@ -107,6 +118,10 @@ function goToAdmin() {
   router.push('/admin/new')
 }
 
+function goToNotifications() {
+  router.push('/notifications')
+}
+
 function getMoodInfo(tag: string) {
   return MOOD_TAGS[tag as keyof typeof MOOD_TAGS] || MOOD_TAGS.miss
 }
@@ -144,6 +159,11 @@ async function deleteMessage(id: string, event: Event) {
     <div class="header">
       <h1>❤️ 留一口</h1>
       <div class="header-actions">
+        <van-badge :content="unreadNotifications > 0 ? unreadNotifications : ''" max="99">
+          <van-button plain type="primary" size="small" icon="bell-o" @click="goToNotifications">
+            通知
+          </van-button>
+        </van-badge>
         <van-button plain type="primary" size="small" icon="calendar-o" @click="showDatePicker">
           日期
         </van-button>

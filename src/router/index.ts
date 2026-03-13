@@ -90,6 +90,12 @@ const router = createRouter({
       name: 'chat',
       component: () => import('@/views/Chat.vue'),
       meta: { title: '聊天' }
+    },
+    {
+      path: '/notifications',
+      name: 'notifications',
+      component: () => import('@/views/Notifications.vue'),
+      meta: { title: '通知' }
     }
   ]
 })

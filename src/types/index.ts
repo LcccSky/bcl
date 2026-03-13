@@ -138,3 +138,14 @@ export interface ChatMessage {
   image_url?: string
   created_at: string
 }
+
+export interface Notification {
+  id: string
+  user_id: string
+  type: 'mention' | 'reply' | 'like'
+  title: string
+  content: string
+  related_id?: string
+  is_read: boolean
+  created_at: string
+}
