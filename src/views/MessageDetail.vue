@@ -21,6 +21,20 @@ const submittingReply = ref(false)
 const showMentionList = ref(false)
 const mentionUsers = ['宝贝', '老公'] // 可以从配置或数据库获取
 
+const filteredMentionUsers = computed(() => {
+  const text = replyContent.value
+  const lastAtIndex = text.lastIndexOf('@')
+
+  if (lastAtIndex === -1) return mentionUsers
+
+  const searchText = text.substring(lastAtIndex + 1).toLowerCase()
+  if (!searchText) return mentionUsers
+
+  return mentionUsers.filter(user =>
+    user.toLowerCase().includes(searchText)
+  )
+})
+
 const isMyMessage = computed(() => {
   return message.value?.author_name === userStore.nickname
 })
@@ -130,17 +144,38 @@ async function submitReply() {
 }
 
 function insertMention(username: string) {
-  replyContent.value += `@${username} `
+  const text = replyContent.value
+  const lastAtIndex = text.lastIndexOf('@')
+
+  if (lastAtIndex !== -1) {
+    // 替换 @ 及其后面的文本为选中的用户名
+    replyContent.value = text.substring(0, lastAtIndex) + `@${username} `
+  } else {
+    replyContent.value += `@${username} `
+  }
+
   showMentionList.value = false
 }
 
 function handleInputChange() {
-  const lastChar = replyContent.value.slice(-1)
-  if (lastChar === '@') {
-    showMentionList.value = true
-  } else if (lastChar === ' ' || lastChar === '\n') {
-    showMentionList.value = false
+  const text = replyContent.value
+
+  // 查找最后一个 @ 符号的位置
+  const lastAtIndex = text.lastIndexOf('@')
+
+  if (lastAtIndex !== -1) {
+    // 获取 @ 后面的文本
+    const afterAt = text.substring(lastAtIndex + 1)
+
+    // 如果 @ 后面没有空格或换行，显示提及列表
+    if (!afterAt.includes(' ') && !afterAt.includes('\n')) {
+      showMentionList.value = true
+      return
+    }
   }
+
+  // 其他情况隐藏列表
+  showMentionList.value = false
 }
 
 async function deleteReply(replyId: string) {
@@ -346,12 +381,15 @@ async function handleDelete() {
           <div class="mention-list">
             <div class="mention-header">选择要提及的人</div>
             <div
-              v-for="user in mentionUsers"
+              v-for="user in filteredMentionUsers"
               :key="user"
               class="mention-item"
               @click="insertMention(user)"
             >
               <span class="mention-name">@{{ user }}</span>
+            </div>
+            <div v-if="filteredMentionUsers.length === 0" class="no-mention-users">
+              没有匹配的用户
             </div>
           </div>
         </van-popup>
@@ -563,5 +601,12 @@ async function handleDelete() {
   background: rgba(255, 107, 157, 0.1);
   padding: 2px 4px;
   border-radius: 4px;
+}
+
+.no-mention-users {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-secondary);
+  font-size: 14px;
 }
 </style>
