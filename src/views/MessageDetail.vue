@@ -19,7 +19,7 @@ const loading = ref(false)
 const replyContent = ref('')
 const submittingReply = ref(false)
 const showMentionList = ref(false)
-const mentionUsers = ['宝贝', '老公'] // 可以从配置或数据库获取
+const mentionUsers = ['Lccc', '宝宝'] // 可以从配置或数据库获取
 
 const filteredMentionUsers = computed(() => {
   const text = replyContent.value
